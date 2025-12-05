@@ -1,0 +1,1353 @@
+openapi: 3.0.0
+info:
+  title: Order Creation API (Fantastic Five)
+  description: SENG2021 Order Creation API. To interact with our API, signup and login to generate a session token and then use this token to authroize use of the API. All endpoints with the lock icon will require this authentication to be accessed. Our API provides support for orders and invoices. We also have an email service for account/order creation, updating and order deletion.
+  version: 2.0.0
+servers:
+
+components:
+  headers:
+    X-Custom-Header:
+      description: A custom header used across all operations
+      required: true
+      schema:
+        type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+paths:
+  /v1/users/signup:
+    post:
+      summary: Create a new user
+      description: signs a user up to our service, must have a unique phone number and email to register. Will send an email confirming an account has been created.
+      tags:
+        - Sessions
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "VendorA"
+                email:
+                  type: string
+                  example: "VendorA@gmail.com"
+                password:
+                  type: string
+                  example: "ILoveMoney"
+                phone:
+                  type: string
+                  example: "0451577488"
+      responses:
+        '200':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account Created Successfully"
+                  userId:
+                    type: string
+                    example: "AGH@UE#&!#&HFJ#@$DDH"
+        '400':
+          description: Bad Request (Invalid Parameter(s))
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Format"
+        '409':
+          description: Conflict - Account already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Account Already Exists"
+
+  /v1/users/login:
+    post:
+      summary: Authenticate user and return a token
+      description: Logs a user into our service creating a session token for them to authorize use of JWT authenticated routes with
+      tags:
+        - Sessions
+      operationId: loginUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "VendorA@gmail.com"
+                password:
+                  type: string
+                  example: "ILoveMoney"
+      responses:
+        '200':
+          description: Successful login, returns a token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "ajf823yr29r8fy92hf82fh928hf"
+        '400':
+          description: Bad Request (Invalid email or password)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Email or Password"
+        '404':
+          description: Account Doesn't Exist In the Database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Account Doesn't Exist"
+
+  /v1/users/logout:
+    delete:
+      summary: Log out a user
+      description: Logs a user out of our service invalidating/blacklisting their session token
+      security:
+        - bearerAuth: []
+      tags:
+        - Sessions
+      operationId: logoutUser
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for logging out the user
+          schema:
+            type: string
+            example: "Bearer <token>"
+      responses:
+        '200':
+          description: Successful logout
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged Out Successfully"
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized - Invalid or missing token"
+
+  /v1/users/orders/create:
+    post:
+      summary: Create a new order
+      description: Creates an order and returns its unique orderId identifer. Also sends an email to the user who created an order confirming it's creation with the contents.
+      security:
+        - bearerAuth: []
+      tags:
+        - Orders
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for creating an order
+          schema:
+            type: string
+            example: "Bearer <token>"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                buyer:
+                  type: object
+                  properties:
+                    buyerName:
+                      type: string
+                    buyerABN:
+                      type: string
+                    buyerAddress:
+                      type: string
+                    buyerPostcode:
+                      type: string
+                    buyerCity:
+                      type: string
+                    buyerState:
+                      type: string
+                    buyerCountry:
+                      type: string
+                    buyerPhone:
+                      type: string
+                    buyerEmail:
+                      type: string
+                seller:
+                  type: object
+                  properties:
+                    sellerName:
+                      type: string
+                    sellerABN:
+                      type: string
+                    sellerAddress:
+                      type: string
+                    sellerPostcode:
+                      type: string
+                    sellerCity:
+                      type: string
+                    sellerState:
+                      type: string
+                    sellerCountry:
+                      type: string
+                    sellerPhone:
+                      type: string
+                    sellerEmail:
+                      type: string
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      itemPrice:
+                        type: number
+                        example: 1
+                      itemQuantity:
+                        type: integer
+                        example: 1
+                      itemDescription:
+                        type: string
+                payment:
+                  type: object
+                  properties:
+                    accountName:
+                      type: string
+                    bankName:
+                      type: string
+                    accountNumber:
+                      type: string
+                    BSB:
+                      type: string
+      responses:
+        '200':
+          description: Order successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                  userId:
+                    type: string
+                  buyer:
+                    type: object
+                    properties:
+                      buyerName:
+                        type: string
+                      buyerABN:
+                        type: string
+                      buyerAddress:
+                        type: string
+                      buyerPostcode:
+                        type: string
+                      buyerCity:
+                        type: string
+                      buyerState:
+                        type: string
+                      buyerCountry:
+                        type: string
+                      buyerPhone:
+                        type: string
+                      buyerEmail:
+                        type: string
+                  seller:
+                    type: object
+                    properties:
+                      sellerName:
+                        type: string
+                      sellerABN:
+                        type: string
+                      sellerAddress:
+                        type: string
+                      sellerPostcode:
+                        type: string
+                      sellerCity:
+                        type: string
+                      sellerState:
+                        type: string
+                      sellerCountry:
+                        type: string
+                      sellerPhone:
+                        type: string
+                      sellerEmail:
+                        type: string
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        itemPrice:
+                          type: number
+                          example: 1
+                        itemQuantity:
+                          type: integer
+                          example: 1
+                        itemDescription:
+                          type: string
+                  payment:
+                    type: object
+                    properties:
+                      accountName:
+                        type: string
+                      bankName:
+                        type: string
+                      accountNumber:
+                        type: string
+                      BSB:
+                        type: string
+        '400':
+          description: Bad Request (Invalid Order Data)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Order Data"
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized - Invalid or missing token"
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal Server Error"
+
+  /v1/users/orders/fetch/{orderId}:
+    get:
+      summary: Fetch a specific order
+      description: Retrieves a specific orders file contents 
+      security:
+        - bearerAuth: []
+      tags:
+        - Orders
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for fetching an order
+          schema:
+            type: string
+            example: "Bearer <token>"
+        - name: orderId
+          in: path
+          required: true
+          description: The ID of the order to fetch
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order successfully fetched
+          content:
+            application/xml:
+              schema:
+                type: string
+        '400':
+          description: Invalid Order ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Order ID"
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized - Invalid or missing token"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order not found"
+
+  /v1/users/orders/update/{orderId}:
+    put:
+      summary: Update an existing order
+      description: Updates a specific order based on the provided fields.
+      security:
+        - bearerAuth: []
+      tags:
+        - Orders
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for updating the order
+          schema:
+            type: string
+            example: "Bearer <token>"
+        - name: orderId
+          in: path
+          required: true
+          description: The order ID to be updated
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                buyer:
+                  type: object
+                  properties:
+                    buyerName:
+                      type: string
+                    buyerABN:
+                      type: string
+                    buyerAddress:
+                      type: string
+                    buyerPostcode:
+                      type: string
+                    buyerCity:
+                      type: string
+                    buyerState:
+                      type: string
+                    buyerCountry:
+                      type: string
+                    buyerPhone:
+                      type: string
+                    buyerEmail:
+                      type: string
+                seller:
+                  type: object
+                  properties:
+                    sellerName:
+                      type: string
+                    sellerABN:
+                      type: string
+                    sellerAddress:
+                      type: string
+                    sellerPostcode:
+                      type: string
+                    sellerCity:
+                      type: string
+                    sellerState:
+                      type: string
+                    sellerCountry:
+                      type: string
+                    sellerPhone:
+                      type: string
+                    sellerEmail:
+                      type: string
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      itemPrice:
+                        type: number
+                      itemQuantity:
+                        type: integer
+                      itemDescription:
+                        type: string
+                payment:
+                  type: object
+                  properties:
+                    accountName:
+                      type: string
+                    bankName:
+                      type: string
+                    accountNumber:
+                      type: string
+                    BSB:
+                      type: string
+      responses:
+        '200':
+          description: Order successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updatedXml:
+                    type: string
+        '400':
+          description: Bad Request (Invalid Order Data)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Order Data"
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized - Invalid or missing token"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order not found"
+  
+  /v2/users/orders/update/{orderId}:
+    put:
+      summary: Update an existing order revised
+      description: Updates a specific order based on the provided fields. Also sends an email of the updated contents to the user who updated the email.
+      security:
+        - bearerAuth: []
+      tags:
+        - Orders
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for updating the order
+          schema:
+            type: string
+            example: "Bearer <token>"
+        - name: orderId
+          in: path
+          required: true
+          description: The order ID to be updated
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                buyer:
+                  type: object
+                  properties:
+                    buyerName:
+                      type: string
+                    buyerABN:
+                      type: string
+                    buyerAddress:
+                      type: string
+                    buyerPostcode:
+                      type: string
+                    buyerCity:
+                      type: string
+                    buyerState:
+                      type: string
+                    buyerCountry:
+                      type: string
+                    buyerPhone:
+                      type: string
+                    buyerEmail:
+                      type: string
+                seller:
+                  type: object
+                  properties:
+                    sellerName:
+                      type: string
+                    sellerABN:
+                      type: string
+                    sellerAddress:
+                      type: string
+                    sellerPostcode:
+                      type: string
+                    sellerCity:
+                      type: string
+                    sellerState:
+                      type: string
+                    sellerCountry:
+                      type: string
+                    sellerPhone:
+                      type: string
+                    sellerEmail:
+                      type: string
+                items:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      itemPrice:
+                        type: number
+                      itemQuantity:
+                        type: integer
+                      itemDescription:
+                        type: string
+                payment:
+                  type: object
+                  properties:
+                    accountName:
+                      type: string
+                    bankName:
+                      type: string
+                    accountNumber:
+                      type: string
+                    BSB:
+                      type: string
+      responses:
+        '200':
+          description: Order successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  updatedXml:
+                    type: string
+        '400':
+          description: Bad Request (Invalid Order Data)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid Order Data"
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Unauthorized - Invalid or missing token"
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Order not found"
+
+
+
+
+  /v1/users/orders/delete/{orderId}:
+      delete:
+        summary: Delete an order by its ID
+        description: Deletes the order specified by the orderId path parameter.
+        security:
+        - bearerAuth: []
+        tags:
+          - Orders
+        parameters:
+          - name: orderId
+            in: path
+            description: The ID of the order to delete   
+            required: true
+            schema:
+              type: string
+          - name: Authorization
+            in: header
+            required: true
+            description: The JWT token required for updating the order
+            schema:
+              type: string
+            example: "Bearer <token>"
+        responses:
+          '200':
+            description: Order successfully deleted
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    orderId:
+                      type: string
+                      description: The ID of the deleted order
+          '400':
+            description: Bad request if the order ID is invalid
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Error message indicating the issue (e.g., invalid order ID)
+          '404':
+            description: Order not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Error message indicating the order was not found
+          '500':
+            description: Internal server error if the database is unresponsive
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Error message indicating that the database is unresponsive or other server issues
+
+  /v2/users/orders/delete/{orderId}:
+      delete:
+        summary: Delete an order by it's orderId Revised
+        description: Deletes the order specified by the orderId path parameter. Will send an email to the user who deleted the email confirming its deletion.
+        security:
+        - bearerAuth: []
+        tags:
+          - Orders
+        parameters:
+          - name: orderId
+            in: path
+            description: The ID of the order to delete   
+            required: true
+            schema:
+              type: string
+          - name: Authorization
+            in: header
+            required: true
+            description: The JWT token required for updating the order
+            schema:
+              type: string
+            example: "Bearer <token>"
+        responses:
+          '200':
+            description: Order successfully deleted
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    orderId:
+                      type: string
+                      description: The ID of the deleted order
+          '400':
+            description: Bad request if the order ID is invalid
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Error message indicating the issue (e.g., invalid order ID)
+          '404':
+            description: Order not found
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Error message indicating the order was not found
+          '500':
+            description: Internal server error if the database is unresponsive
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      description: Error message indicating that the database is unresponsive or other server issues
+
+  /v1/users/orders/fetch:
+      get:
+        summary: Fetch orders for a user
+        description: Fetches all orders (UBL documents) for a given user, with optional filtering via query parameters.
+        security:
+          - bearerAuth: []
+        operationId: fetchOrders
+        tags:
+          - Orders
+        parameters:
+          - name: Authorization
+            in: header
+            required: true
+            description: The JWT token required for updating the order
+            schema:
+              type: string
+            example: "Bearer <token>"
+          - name: userId
+            in: query
+            description: The ID of the user whose orders are to be fetched.
+            required: true
+            schema:
+              type: string
+          - name: buyerName
+            in: query
+            description: The name of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerABN
+            in: query
+            description: The Australian Business Number (ABN) of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerAddress
+            in: query
+            description: The address of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerPostcode
+            in: query
+            description: The postcode of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerCity
+            in: query
+            description: The city of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerState
+            in: query
+            description: The state of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerCountry
+            in: query
+            description: The country of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerPhone
+            in: query
+            description: The phone number of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: buyerEmail
+            in: query
+            description: The email of the buyer to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerName
+            in: query
+            description: The name of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerABN
+            in: query
+            description: The Australian Business Number (ABN) of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerAddress
+            in: query
+            description: The address of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerPostcode
+            in: query
+            description: The postcode of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerCity
+            in: query
+            description: The city of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerState
+            in: query
+            description: The state of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerCountry
+            in: query
+            description: The country of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerPhone
+            in: query
+            description: The phone number of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+          - name: sellerEmail
+            in: query
+            description: The email of the seller to filter orders.
+            required: false
+            schema:
+              type: string
+        responses:
+          '200':
+            description: A list of order IDs that match the query parameters.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    orderIds:
+                      type: array
+                      items:
+                        type: string
+                      description: List of order IDs.
+          '400':
+            description: Incorrectly formatted query object or an unknown error occurred.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: "Incorrectly formatted JSON query object"
+          '500':
+            description: Internal server error.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    error:
+                      type: string
+                      example: "An unknown error occurred"
+
+  /v1/invoices/create:
+    post:
+      summary: Create a new invoice
+      security:
+        - bearerAuth: []
+      description: Forwards the invoice data to an external API to generate a new invoice.
+      tags:
+        - Invoices
+      parameters:
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for updating the order
+          schema:
+            type: string
+          example: "Bearer <token>"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The invoice data to be created
+              example:
+                buyer: "John Smith"
+                items:
+                  - item: "Product 1"
+                    quantity: 2
+                    price: 50
+                total: 100
+      responses:
+        '200':
+          description: Invoice successfully created
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  invoiceId: "abc123"
+        '400':
+          description: Bad request if the invoice data is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to generate invoice"
+
+  /v1/users/analytics/monthlycosts:
+    get:
+      summary: Retrieve monthly cost analytics for a user
+      description: Returns monthly cost analytics data for a user.
+
+      tags:
+        - Orders
+      operationId: getMonthlyCosts
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for the cost analytics (formatted as yyyy-mmm, e.g., 2024-Feb)
+          required: true
+          schema:
+            type: string
+            example: "2024-Feb"
+        - name: endDate
+          in: query
+          description: End date for the cost analytics (formatted as yyyy-mmm, e.g., 2024-Mar)
+          required: true
+          schema:
+            type: string
+            example: "2024-Mar"
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully retrieved monthly cost analytics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    month:
+                      type: string
+                      description: The month and year of the analytics (e.g., 2024-Feb)
+                      example: "2024-Feb"
+                    cost:
+                      type: number
+                      description: The calculated cost for that month
+                      example: 1500.75
+        '400':
+          description: Invalid query parameters (e.g., wrong date format)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid date format"
+        '500':
+          description: Server error when fetching data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to retrieve monthly costs"
+
+  /v1/invoices/update/{invoiceId}:
+    put:
+      summary: Update an existing invoice
+      security:
+        - bearerAuth: []
+      description: Updates the invoice with the specified ID using the provided request body.
+      tags:
+        - Invoices
+      parameters:
+        - name: invoiceId
+          in: path
+          description: The ID of the invoice to update
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for updating the order
+          schema:
+            type: string
+          example: "Bearer <token>"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                invoiceName:
+                  type: string
+                  example: "example_name"
+                startDate:
+                  type: string
+                  format: date-time
+                  example: "2025-02-15T08:16:49.854Z"
+                endDate:
+                  type: string
+                  format: date-time
+                  example: "2025-04-15T09:16:49.854Z"
+                custName:
+                  type: string
+                  example: "some_customer"
+                itemName:
+                  type: string
+                  example: "some_item"
+                numItems:
+                  type: integer
+                  example: 10
+                itemPrice:
+                  type: number
+                  format: float
+                  example: 77
+      responses:
+        '200':
+          description: Invoice successfully updated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Invoice successfully updated"
+        '400':
+          description: Bad request if the invoice data or ID is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to update invoice"
+
+  /v1/invoices/delete/{invoiceId}:
+    delete:
+      summary: Delete an invoice by its ID
+      security:
+        - bearerAuth: []
+      description: Deletes the invoice specified by the invoiceId path parameter using an external API.
+      tags:
+        - Invoices
+      parameters:
+        - name: invoiceId
+          in: path
+          description: The ID of the invoice to delete
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for updating the order
+          schema:
+            type: string
+          example: "Bearer <token>"
+      responses:
+        '200':
+          description: Invoice successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Invoice successfully deleted"
+        '400':
+          description: Bad request if the invoice ID is invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to delete invoice"
+
+
+  /v1/invoices/fetch/{invoiceId}:
+    get:
+      summary: Fetch an invoice by its ID
+      security:
+        - bearerAuth: []
+      description: Retrieves invoice data from an external API based on the provided invoiceId path parameter.
+      tags:
+        - Invoices
+      parameters:
+        - name: invoiceId
+          in: path
+          description: The ID of the invoice to fetch
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for updating the order
+          schema:
+            type: string
+          example: "Bearer <token>"
+      responses:
+        '200':
+          description: Invoice successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                description: JSON response from the external invoice service
+                example: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Invoice xmlns=\"urn:oasis:names:specification:ubl:schema:xsd:Invoice-2\" xmlns:cac=\"urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2\" xmlns:cbc=\"urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2\">\n   <cbc:ID>741a105347ee46ebf0534</cbc:ID>\n   <cbc:IssueDate>2025-03-17</cbc:IssueDate>\n   <cac:InvoicePeriod>\n      <cbc:StartDate>2025-02-17</cbc:StartDate>\n      <cbc:EndDate>2025-04-17</cbc:EndDate>\n   </cac:InvoicePeriod>\n   <cac:AccountingSupplierParty>\n      <cac:Party>\n         <cac:PartyName>\n            <cbc:Name>some_supplier</cbc:Name>\n         </cac:PartyName>\n      </cac:Party>\n   </cac:AccountingSupplierParty>\n   <cac:AccountingCustomerParty>\n      <cac:Party>\n         <cac:PartyName>\n            <cbc:Name>some_customer</cbc:Name>\n         </cac:PartyName>\n      </cac:Party>\n   </cac:AccountingCustomerParty>\n   <cac:LegalMonetaryTotal>\n      <cbc:PayableAmount currencyID=\"AUD\">770</cbc:PayableAmount>\n   </cac:LegalMonetaryTotal>\n   <cac:InvoiceLine>\n      <cbc:ID>1</cbc:ID>\n      <cbc:LineExtensionAmount currencyID=\"AUD\">770</cbc:LineExtensionAmount>\n      <cac:Item>\n         <cbc:Name>some_item</cbc:Name>\n      </cac:Item>\n      <cac:Price>\n         <cbc:PriceAmount currencyID=\"AUD\">77</cbc:PriceAmount>\n         <cbc:BaseQuantity unitCode=\"EA\">10</cbc:BaseQuantity>\n      </cac:Price>\n   </cac:InvoiceLine>\n</Invoice>"
+
+        '400':
+          description: Bad request if the invoice ID is missing or malformed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to fetch invoice"
+        '500':
+          description: Internal server error if the external API is unreachable or unresponsive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Internal server error"
+
+  /v1/invoices/validate/{invoiceId}:
+    put:
+      summary: Validate an invoice by its ID
+      security:
+        - bearerAuth: []
+      description: Validates the invoice specified by the invoiceId path parameter using an external API.
+      tags:
+        - Invoices
+      parameters:
+        - name: invoiceId
+          in: path
+          description: The ID of the invoice to validate
+          required: true
+          schema:
+            type: string
+        - name: Authorization
+          in: header
+          required: true
+          description: The JWT token required for updating the order
+          schema:
+            type: string
+          example: "Bearer <token>"
+      responses:
+        '200':
+          description: Invoice successfully validated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Invoice successfully validated!"
+
+        '400':
+          description: Bad request if the invoice ID is missing or malformed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to validate invoice"
+
+
+  /v1/health:
+      get:
+        summary: Health check endpoint to check API uptime and database connectivity
+        description: This endpoint checks the database connection status and API uptime.
+        tags:
+          - Health
+        responses:
+          '200':
+            description: Successfully connected to the database and the API is running
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    db:
+                      type: string
+                      example: "DB is connected"
+                    time:
+                      type: integer
+                      description: The current time in milliseconds since Unix epoch
+                      example: 1616161616161
+          '500':
+            description: Database is unresponsive
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    db:
+                      type: string
+                      example: "DB is unresponsive"
