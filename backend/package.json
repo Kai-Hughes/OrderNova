@@ -2,10 +2,6 @@
   "name": "fantastic-five-api",
   "version": "1.0.0",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend"
-  ],
   "description": "",
   "main": "src/server.ts",
   "scripts": {
