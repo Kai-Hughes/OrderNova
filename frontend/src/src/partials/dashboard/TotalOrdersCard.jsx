@@ -10,6 +10,9 @@ import {
   Tooltip,
 } from 'recharts';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+
 const TotalOrdersChartCard = () => {
   const [dailyOrders, setDailyOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +20,7 @@ const TotalOrdersChartCard = () => {
   useEffect(() => {
     const fetchTotalOrdersByDay = async () => {
       try {
-        const res = await axios.get('http://localhost:3030/v1/users/analytics/totalorders', {
+        const res = await axios.get(`${API_BASE_URL}/v1/users/analytics/totalorders`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },

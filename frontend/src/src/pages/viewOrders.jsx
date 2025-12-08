@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const ViewOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -12,7 +13,7 @@ const ViewOrdersPage = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const res = await axios.get('http://localhost:3030/v1/users/orders/fetch', {
+        const res = await axios.get(`${API_BASE_URL}/v1/users/orders/fetch`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },

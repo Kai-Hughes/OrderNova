@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { DollarSign } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+
 const AverageOrderValueCard = () => {
   const [averageValue, setAverageValue] = useState(null);
   const [orderCount, setOrderCount] = useState(null);
@@ -10,7 +13,7 @@ const AverageOrderValueCard = () => {
   useEffect(() => {
     const fetchAverageOrderValue = async () => {
       try {
-        const res = await axios.get('http://localhost:3030/v1/users/analytics/averageordervalue', {
+        const res = await axios.get(`${API_BASE_URL}/v1/users/analytics/averageordervalue`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },

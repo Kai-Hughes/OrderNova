@@ -10,6 +10,8 @@ import {
   Tooltip,
 } from 'recharts';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const AnalyticsCard = () => {
   const [monthlyCosts, setMonthlyCosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,7 @@ const AnalyticsCard = () => {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await axios.get('http://localhost:3030/v1/users/analytics/monthlycosts', {
+        const res = await axios.get(`${API_BASE_URL}/v1/users/analytics/monthlycosts`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 const COLORS = ['#8b5cf6', '#6366f1', '#ec4899', '#f59e0b', '#10b981'];
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const TopProductCategoriesCard = () => {
   const [categories, setCategories] = useState([]);
@@ -11,7 +12,7 @@ const TopProductCategoriesCard = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await axios.get('http://localhost:3030/v1/users/analytics/topcategories', {
+        const res = await axios.get(`${API_BASE_URL}/v1/users/analytics/topcategories`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },

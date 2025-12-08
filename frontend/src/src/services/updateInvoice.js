@@ -1,8 +1,11 @@
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+
 export const updateInvoice = async (invoiceId, formData) => {
   try {
-    const response = await axios.put(`http://localhost:3030/v1/invoices/update/${invoiceId}`, formData, {
+    const response = await axios.put(`${API_BASE_URL}/v1/invoices/update/${invoiceId}`, formData, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('authToken')}`, // Token from localStorage
       },

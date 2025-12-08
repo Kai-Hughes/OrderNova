@@ -1,3 +1,6 @@
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+
 class ActionProvider {
     createChatBotMessage: any;
     setState: any;
@@ -82,7 +85,7 @@ class ActionProvider {
         messages: [...prevState.messages, message],
       }));
       setTimeout(() => {
-        window.open("http://localhost:3030/api-docs", "_blank");
+        // window.open(`${API_BASE_URL}/api-docs`, "_blank");
       }, 1500);
     }
   

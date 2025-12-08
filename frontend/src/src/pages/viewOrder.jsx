@@ -5,6 +5,9 @@ import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
 import { xml2js } from 'xml-js';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+
 const ViewOrderPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
@@ -15,7 +18,7 @@ const ViewOrderPage = () => {
 
   const fetchOrder = async () => {
     try {
-      const res = await axios.get(`http://localhost:3030/v1/users/orders/fetch/${orderId}`, {
+      const res = await axios.get(`${API_BASE_URL}/v1/users/orders/fetch/${orderId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
@@ -87,7 +90,7 @@ const ViewOrderPage = () => {
         },
       };
 
-      await axios.put(`http://localhost:3030/v2/users/orders/update/${orderId}`, payload, {
+      await axios.put(`${API_BASE_URL}/v2/users/orders/update/${orderId}`, payload, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
