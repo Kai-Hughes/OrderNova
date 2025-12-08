@@ -1,7 +1,7 @@
 
 import express, { Request, Response } from 'express'; 
 import { DBgetUserId, DBgetUserInfo } from "./database";
-import { sessionMap } from "./server";
+import { sessionMap } from "./app";
 import { generateToken } from "./tokenHandler";
 import bcrypt from 'bcryptjs';
 

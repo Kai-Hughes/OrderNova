@@ -1,6 +1,6 @@
 
 import  jwt  from 'jsonwebtoken';
-import { secretKey, sessionMap } from './server';
+import { secretKey, sessionMap } from './app';
 import { NextFunction, Request, Response  } from 'express';
 import { AuthRequest } from './object';
 

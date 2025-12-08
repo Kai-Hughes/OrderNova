@@ -1,7 +1,7 @@
 import express, { Request, Response }from 'express'
 import { authenticateJWT } from './tokenHandler';
 import { AuthRequest } from './object';
-import { sessionMap } from './server';
+import { sessionMap } from './app';
 
 const router = express.Router();
 
