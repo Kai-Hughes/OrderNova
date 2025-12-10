@@ -2,8 +2,6 @@ import express, { Request, Response } from 'express';
 import cors from "cors";
 import { DBConnect, DBsetup } from './database';
 const path = require("path");
-export const app = express();
-export const secretKey = 'key';
 import signupRoute from './signup';
 import loginRoute from './login';
 import logoutRoute from './logout';
@@ -23,6 +21,9 @@ import analyticsRoute from './analytics';
 import bulkCreateRoute from './bulkOrderCreate';
 import { otherAPIAuth } from './externalAuth';
 
+export const app = express();
+export const secretKey = 'key';
+
 DBsetup();
 DBConnect();
 
@@ -32,14 +33,16 @@ export const sessionMap: Record<string, boolean> = {};
 // export const server = app.listen(port, () => {
 //     console.log(`🚀 Server is running at http://localhost:3030`);
 // });
+app.use(cors({
+  origin: 'https://order-nova.vercel.app', // or '*' while debugging
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+}));
+
+app.options('*', cors());
+
 
 app.use(express.json());
-app.use(cors(
-    {
-    origin: '*', // This allows all origins, adjust as needed for security
-    methods: 'GET,POST,PUT,DELETE', // Adjust allowed methods as necessary
-    }
-));
+
 app.use(express.static('public'))
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(signupRoute);
