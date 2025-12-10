@@ -33,12 +33,8 @@ export const sessionMap: Record<string, boolean> = {};
 // export const server = app.listen(port, () => {
 //     console.log(`🚀 Server is running at http://localhost:3030`);
 // });
-app.use(cors({
-  origin: 'https://order-nova.vercel.app', // or '*' while debugging
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-}));
-
-app.options('*', cors());
+app.use(cors({ origin: "*" }));
+app.options("*", cors());
 
 
 app.use(express.json());
