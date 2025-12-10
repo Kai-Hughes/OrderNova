@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Transition from '../utils/Transition';
 import UserAvatar from '../images/user-avatar-32.png';
 
@@ -9,6 +9,7 @@ function DropdownProfile({ align }) {
 
   const trigger = useRef(null);
   const dropdown = useRef(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const storedName = localStorage.getItem('userEmail');
@@ -34,6 +35,18 @@ function DropdownProfile({ align }) {
     return () => document.removeEventListener('keydown', keyHandler);
   });
 
+  const handleSignOut = () => {
+    // 🔐 Clear auth-related data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userEmail');
+
+    // Close dropdown
+    setDropdownOpen(false);
+
+    // Redirect to homepage
+    navigate('/');
+  };
+
   return (
     <div className="relative inline-flex">
       <button
@@ -45,7 +58,9 @@ function DropdownProfile({ align }) {
       >
         <img className="w-8 h-8 rounded-full" src={UserAvatar} width="32" height="32" alt="User" />
         <div className="flex items-center truncate">
-          <span className="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white">{userName}</span>
+          <span className="truncate ml-2 text-sm font-medium text-gray-600 dark:text-gray-100 group-hover:text-gray-800 dark:group-hover:text-white">
+            {userName}
+          </span>
           <svg className="w-3 h-3 shrink-0 ml-1 fill-current text-gray-400 dark:text-gray-500" viewBox="0 0 12 12">
             <path d="M5.9 11.4L.5 6l1.4-1.4 4 4 4-4L11.3 6z" />
           </svg>
@@ -53,7 +68,9 @@ function DropdownProfile({ align }) {
       </button>
 
       <Transition
-        className={`origin-top-right z-10 absolute top-full min-w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1 ${align === 'right' ? 'right-0' : 'left-0'}`}
+        className={`origin-top-right z-10 absolute top-full min-w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 py-1.5 rounded-lg shadow-lg overflow-hidden mt-1 ${
+          align === 'right' ? 'right-0' : 'left-0'
+        }`}
         show={dropdownOpen}
         enter="transition ease-out duration-200 transform"
         enterStart="opacity-0 -translate-y-2"
@@ -72,13 +89,13 @@ function DropdownProfile({ align }) {
           </div>
           <ul>
             <li>
-              <Link
-                className="font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3"
-                to="/signup"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
+              <button
+                type="button"
+                className="w-full text-left font-medium text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 flex items-center py-1 px-3"
+                onClick={handleSignOut}
               >
                 Sign Out
-              </Link>
+              </button>
             </li>
           </ul>
         </div>

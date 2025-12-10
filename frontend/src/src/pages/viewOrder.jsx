@@ -5,7 +5,7 @@ import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
 import { xml2js } from 'xml-js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3030";
 
 
 const ViewOrderPage = () => {

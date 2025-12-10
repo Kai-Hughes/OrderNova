@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaUserPlus, FaClipboardList, FaChartLine } from 'react-icons/fa';
 import { HiChevronRight } from 'react-icons/hi';
+import { useNavigate } from 'react-router-dom';
 
 const features = [
   { title: "Fast Order Creation", desc: "Generate orders in seconds with our intuitive form." },
@@ -36,9 +37,17 @@ const steps = [
   { icon: <FaChartLine />, title: "Track Progress", desc: "Follow your orders in real time." },
 ];
 
-// revert this
-
 function HomePage() {
+  const navigate = useNavigate();
+
+  // 🔐 Track whether the user is "logged in" based on presence of authToken
+  const [isAuthed, setIsAuthed] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    setIsAuthed(!!token);
+  }, []);
+
   const useInView = (threshold = 0.1) => {
     const ref = useRef();
     const [isVisible, setIsVisible] = useState(false);
@@ -61,7 +70,7 @@ function HomePage() {
   };
 
   const AnimatedCard = ({ delay, children }) => {
-    const [ref, isVisible] = useInView(0.1); // Trigger animation when 10% of the card is visible
+    const [ref, isVisible] = useInView(0.1);
     return (
       <div
         ref={ref}
@@ -79,36 +88,46 @@ function HomePage() {
 
   const scrollRef = useRef(null);
 
-const scroll = (direction) => {
-  if (scrollRef.current) {
-    const scrollAmount = 300;
-    scrollRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth',
-    });
-  }
-};
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      const scrollAmount = 300;
+      scrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      });
+    }
+  };
 
-function FAQCard({ question, answer }) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  function FAQCard({ question, answer }) {
+    const [isOpen, setIsOpen] = React.useState(false);
 
-  return (
-    <div
-      className="bg-gray-900 border border-gray-700 rounded-lg p-6 cursor-pointer hover:border-blue-500 transition"
-      onClick={() => setIsOpen(!isOpen)}
-    >
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-white">{question}</h3>
-        <span className="text-blue-400 text-xl">
-          {isOpen ? "−" : "+"}
-        </span>
+    return (
+      <div
+        className="bg-gray-900 border border-gray-700 rounded-lg p-6 cursor-pointer hover:border-blue-500 transition"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-white">{question}</h3>
+          <span className="text-blue-400 text-xl">
+            {isOpen ? "−" : "+"}
+          </span>
+        </div>
+        {isOpen && (
+          <p className="mt-4 text-gray-300">{answer}</p>
+        )}
       </div>
-      {isOpen && (
-        <p className="mt-4 text-gray-300">{answer}</p>
-      )}
-    </div>
-  );
-}
+    );
+  }
+
+  // Dashboard button behaviour (kept for reuse / future tweaks)
+  const handleDashboardClick = () => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      navigate('/dashboard');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="bg-gray-900 text-gray-100 min-h-screen">
@@ -116,7 +135,16 @@ function FAQCard({ question, answer }) {
       <header className="bg-gray-950 shadow">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-violet-600">OrderNova</h1>
-          <nav className="space-x-4">
+          <nav className="space-x-4 flex items-center">
+            {/* ✅ Only show Dashboard button if user is logged in */}
+            {isAuthed && (
+              <button
+                onClick={handleDashboardClick}
+                className="text-gray-300 hover:text-white transition text-sm border border-gray-600 px-3 py-1 rounded-lg"
+              >
+                Dashboard
+              </button>
+            )}
             <a href="#features" className="text-gray-300 hover:text-white transition">Features</a>
             <a href="#how-it-works" className="text-gray-300 hover:text-white transition">How It Works</a>
             <a href="#pricing" className="text-gray-300 hover:text-white transition">Pricing</a>
@@ -128,125 +156,119 @@ function FAQCard({ question, answer }) {
 
       {/* Hero */}
       <section className="text-center py-30 px-30 bg-gray-900 flex items-center justify-between">
-  <div className="max-w-xl text-left">
-    <h2 className="text-4xl font-extrabold mb-4 text-white">Manage Orders. Save Time.</h2>
-    <p className="text-lg mb-6 text-gray-300">
-      OrderNova helps businesses streamline order creation, invoicing, and analyse buisness trends in one unified platform.
-    </p>
-    <a href="/signup" className="px-6 py-3 bg-gray-100 text-gray-900 font-semibold rounded-xl hover:bg-white transition">
-      Get Started for Free
-    </a>
-  </div>
+        <div className="max-w-xl text-left">
+          <h2 className="text-4xl font-extrabold mb-4 text-white">Manage Orders. Save Time.</h2>
+          <p className="text-lg mb-6 text-gray-300">
+            OrderNova helps businesses streamline order creation, invoicing, and analyse buisness trends in one unified platform.
+          </p>
+          <a href="/signup" className="px-6 py-3 bg-gray-100 text-gray-900 font-semibold rounded-xl hover:bg-white transition">
+            Get Started for Free
+          </a>
+        </div>
 
-  {/* GIF on the right */}
-  <img
-    src="https://i.pinimg.com/originals/5f/08/50/5f08505655b858d52ea4ef07a6fa58d5.gif"
-    alt="Working animation"
-    className="rounded-lg w-96 max-w-full hidden md:block"
-  />
-</section>
+        <img
+          src="https://i.pinimg.com/originals/5f/08/50/5f08505655b858d52ea4ef07a6fa58d5.gif"
+          alt="Working animation"
+          className="rounded-lg w-96 max-w-full hidden md:block"
+        />
+      </section>
 
-<hr className="border-t border-gray-700 my-5 mx-auto w-3/4" />
+      <hr className="border-t border-gray-700 my-5 mx-auto w-3/4" />
 
       {/* Features */}
       <section id="features" className="py-16 px-4 bg-gray-900 relative">
-  <div className="max-w-7xl mx-auto">
-    <h2 className="text-3xl font-bold mb-8 text-white text-center">Features</h2>
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-3xl font-bold mb-8 text-white text-center">Features</h2>
 
-    <div className="relative">
-      {/* Left Arrow */}
-      <button
-        onClick={() => scroll('left')}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow z-10 hover:bg-gray-700"
-      >
-        &#8592;
-      </button>
+          <div className="relative">
+            <button
+              onClick={() => scroll('left')}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow z-10 hover:bg-gray-700"
+            >
+              &#8592;
+            </button>
 
-      {/* Scrollable container */}
-      <div
-        ref={scrollRef}
-        className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4 px-10 scroll-smooth"
-      >
-        {features.map((feature, index) => (
-          <div key={index} className="flex-shrink-0 w-72">
-            <FeatureCard title={feature.title} desc={feature.desc} />
+            <div
+              ref={scrollRef}
+              className="flex space-x-6 overflow-x-auto scrollbar-hide pb-4 px-10 scroll-smooth"
+            >
+              {features.map((feature, index) => (
+                <div key={index} className="flex-shrink-0 w-72">
+                  <FeatureCard title={feature.title} desc={feature.desc} />
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => scroll('right')}
+              className="absolute left-318 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow z-10 hover:bg-gray-700"
+            >
+              &#8594;
+            </button>
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
 
-      {/* Right Arrow */}
-      <button
-        onClick={() => scroll('right')}
-        className="absolute left-318 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full shadow z-10 hover:bg-gray-700"
-      >
-        &#8594;
-      </button>
-    </div>
-  </div>
-</section>
+      <hr className="border-t border-gray-700 my-5 mx-auto w-3/4" />
 
-<hr className="border-t border-gray-700 my-5 mx-auto w-3/4" />
+      <HowItWorksSection />
 
-{/* How It Works */}
-<HowItWorksSection />
+      <hr className="border-t border-gray-700 my-5 mx-auto w-3/4" />
 
-<hr className="border-t border-gray-700 my-5 mx-auto w-3/4" />
+      {/* Pricing Plans */}
+      <section id="pricing" className="bg-gray-900 py-20 px-4">
+        <h2 className="text-3xl font-bold text-white mb-10 text-center">Pricing Plans</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <AnimatedCard delay={100}>
+            <div className="bg-gray-900 border border-gray-700 rounded-xl p-8 shadow hover:shadow-lg transition transform hover:scale-105">
+              <h3 className="text-2xl font-semibold mb-4">Free Plan</h3>
+              <p className="text-gray-400 mb-4">Perfect for individuals and small businesses just getting started.</p>
+              <ul className="text-left space-y-2 text-gray-300 mb-4">
+                <li>✅ Orders</li>
+                <li>✅ Invoices</li>
+                <li>✅ Email Notifications</li>
+                <li>🚫 Real-Time Data Analytics</li>
+                <li>🚫 Bulk-Order Processing</li>
+              </ul>
+              <div className="text-3xl font-bold mb-4">$0<span className="text-base font-normal text-gray-400"> /mo</span></div>
+              <a href="/signup" className="inline-block mt-2 px-6 py-3 bg-gray-100 text-gray-900 font-semibold rounded-xl hover:bg-white transition">
+                Get Started
+              </a>
+            </div>
+          </AnimatedCard>
 
-{/* Pricing Plans Section */}
-<section id="pricing" className="bg-gray-900 py-20 px-4">
-<h2 className="text-3xl font-bold text-white mb-10 text-center">Pricing Plans</h2>
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-    <AnimatedCard delay={100}>
-      <div className="bg-gray-900 border border-gray-700 rounded-xl p-8 shadow hover:shadow-lg transition transform hover:scale-105">
-        <h3 className="text-2xl font-semibold mb-4">Free Plan</h3>
-        <p className="text-gray-400 mb-4">Perfect for individuals and small businesses just getting started.</p>
-        <ul className="text-left space-y-2 text-gray-300 mb-4">
-          <li>✅ Orders</li>
-          <li>✅ Invoices</li>
-          <li>✅ Email Notifications</li>
-          <li>🚫 Real-Time Data Analytics</li>
-          <li>🚫 Bulk-Order Processing</li>
-        </ul>
-        <div className="text-3xl font-bold mb-4">$0<span className="text-base font-normal text-gray-400"> /mo</span></div>
-        <a href="/signup" className="inline-block mt-2 px-6 py-3 bg-gray-100 text-gray-900 font-semibold rounded-xl hover:bg-white transition">
-          Get Started
-        </a>
-      </div>
-    </AnimatedCard>
+          <AnimatedCard delay={300}>
+            <div className="bg-violet-600 rounded-xl p-8 shadow-lg hover:shadow-2xl transition transform hover:scale-105">
+              <h3 className="text-2xl font-semibold mb-4 text-white">Premium Plan</h3>
+              <p className="text-blue-100 mb-4">Built for growing teams and high-volume workflows.</p>
+              <ul className="text-left space-y-2 text-blue-100 mb-4">
+                <li>✅ Orders</li>
+                <li>✅ Invoices</li>
+                <li>✅ Email Notifications</li>
+                <li>✅ Real-Time Data Analytics</li>
+                <li>✅ Bulk-Order Processing</li>
+              </ul>
+              <div className="text-3xl font-bold mb-4 text-white">$29<span className="text-base font-normal text-blue-100"> /mo</span></div>
+              <a href="/signup" className="inline-block mt-2 px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-100 transition">
+                Upgrade Now
+              </a>
+            </div>
+          </AnimatedCard>
+        </div>
+      </section>
 
-    <AnimatedCard delay={300}>
-      <div className="bg-violet-600 rounded-xl p-8 shadow-lg hover:shadow-2xl transition transform hover:scale-105">
-        <h3 className="text-2xl font-semibold mb-4 text-white">Premium Plan</h3>
-        <p className="text-blue-100 mb-4">Built for growing teams and high-volume workflows.</p>
-        <ul className="text-left space-y-2 text-blue-100 mb-4">
-          <li>✅ Orders</li>
-          <li>✅ Invoices</li>
-          <li>✅ Email Notifications</li>
-          <li>✅ Real-Time Data Analytics</li>
-          <li>✅ Bulk-Order Processing</li>
-        </ul>
-        <div className="text-3xl font-bold mb-4 text-white">$29<span className="text-base font-normal text-blue-100"> /mo</span></div>
-        <a href="/signup" className="inline-block mt-2 px-6 py-3 bg-white text-blue-600 font-semibold rounded-xl hover:bg-gray-100 transition">
-          Upgrade Now
-        </a>
-      </div>
-    </AnimatedCard>
-  </div>
-</section>
+      <section className="bg-gray-800 py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">Frequently Asked Questions</h2>
+          <div className="space-y-4">
+            {faqs.map((faq, index) => (
+              <FAQCard key={index} question={faq.question} answer={faq.answer} />
+            ))}
+          </div>
+        </div>
+      </section>
 
-  <section className="bg-gray-800 py-16 px-4">
-    <div className="max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold text-white mb-8 text-center">Frequently Asked Questions</h2>
-      <div className="space-y-4">
-        {faqs.map((faq, index) => (
-          <FAQCard key={index} question={faq.question} answer={faq.answer} />
-        ))}
-      </div>
-    </div>
-  </section>
-
-      {/* Footer */}
-      <footer id="" className="text-center py-6 text-sm text-gray-400 bg-gray-900">
+      <footer className="text-center py-6 text-sm text-gray-400 bg-gray-900">
         &copy; {new Date().getFullYear()} OrderNova. All rights reserved.
       </footer>
     </div>
@@ -258,8 +280,6 @@ function FeatureCard({ title, desc }) {
     <div className="group bg-gray-800 rounded-xl shadow-md p-6 hover:bg-gray-700 transition-all transform hover:scale-105 duration-300 ease-in-out relative overflow-hidden h-48 hover:h-64">
       <h4 className="text-xl font-semibold mb-2 text-white">{title}</h4>
       <p className="text-gray-300">{desc}</p>
-
-      {/* Hidden extra content */}
       <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-4 text-sm text-gray-400">
         <p>More details about this feature go here.</p>
         <div className="mt-2">
@@ -278,7 +298,6 @@ function FeatureCard({ title, desc }) {
   );
 }
 
-
 function StepCard({ step, title, desc }) {
   return (
     <div className="p-4">
@@ -288,8 +307,6 @@ function StepCard({ step, title, desc }) {
     </div>
   );
 }
-
-
 
 function HowItWorksSection() {
   const [visibleStep, setVisibleStep] = useState(0);
@@ -313,7 +330,12 @@ function HowItWorksSection() {
         <h2 className="text-3xl font-bold text-white mb-10">How It Works</h2>
         <div className="flex flex-col sm:flex-row justify-center items-center space-y-12 sm:space-y-0 sm:space-x-12">
           {steps.map((step, index) => (
-            <div key={index} className={`relative text-white text-center transition-opacity duration-700 ${index > visibleStep ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}>
+            <div
+              key={index}
+              className={`relative text-white text-center transition-opacity duration-700 ${
+                index > visibleStep ? 'opacity-0 scale-90' : 'opacity-100 scale-100'
+              }`}
+            >
               <div className="text-4xl mb-4 text-violet-400">{step.icon}</div>
               <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
               <p className="text-gray-300">{step.desc}</p>
@@ -329,6 +351,5 @@ function HowItWorksSection() {
     </section>
   );
 }
-
 
 export default HomePage;

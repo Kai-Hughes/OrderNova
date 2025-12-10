@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
@@ -31,11 +32,15 @@ import TopProductCategoriesCard from '../partials/dashboard/TopProductCategories
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // State for collapsible sections
   const [showCreateOrder, setShowCreateOrder] = useState(false);
-  //const [showViewOrder, setShowViewOrder] = useState(false);
   const [showViewOrders, setShowViewOrders] = useState(false);
-  const [showBulkOrder, setShowBulkOrder] = useState(false); // State for Bulk Order section
+  const [showBulkOrder, setShowBulkOrder] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleBackHome = () => {
+    navigate('/');
+  };
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -54,12 +59,22 @@ function Dashboard() {
 
             {/* Dashboard actions */}
             <div className="sm:flex sm:justify-between sm:items-center mb-8">
-
               {/* Left: Title */}
               <div className="mb-4 sm:mb-0">
-                <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">Dashboard</h1>
+                <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+                  Dashboard
+                </h1>
               </div>
 
+              {/* Right: Back to home */}
+              <div>
+                <button
+                  onClick={handleBackHome}
+                  className="px-4 py-2 rounded-md border border-gray-500 text-sm text-gray-100 hover:bg-gray-800 transition"
+                >
+                  ← Back to Home
+                </button>
+              </div>
             </div>
 
             {/* Cards */}
@@ -69,8 +84,6 @@ function Dashboard() {
               <TopProductCategoriesCard />
               <TotalOrdersCard />
             </div>
-
-
 
             {/* Collapsible Create Order */}
             <div className="mt-10">
@@ -82,47 +95,6 @@ function Dashboard() {
               </button>
               {showCreateOrder && <CreateOrder />}
             </div>
-
-            {/* Collapsible View Order
-            <div className="mt-10">
-              <button
-                className="w-full text-left text-lg font-bold text-gray-800 dark:text-gray-100 mb-2"
-                onClick={() => setShowViewOrder(!showViewOrder)}
-              >
-                {showViewOrder ? '▼' : '▶'} View Order
-              </button>
-              {showViewOrder && (
-                <ViewOrderCard
-                  order={{
-                    buyerName: 'John Doe',
-                    buyerABN: '12345678901',
-                    buyerAddress: '123 Main St',
-                    buyerPostcode: '2000',
-                    buyerCity: 'Sydney',
-                    buyerState: 'NSW',
-                    buyerCountry: 'Australia',
-                    buyerPhone: '0400 000 000',
-                    buyerEmail: 'john@example.com',
-                    sellerName: 'Acme Corp',
-                    sellerABN: '09876543210',
-                    sellerAddress: '456 High St',
-                    sellerPostcode: '3000',
-                    sellerCity: 'Melbourne',
-                    sellerState: 'VIC',
-                    sellerCountry: 'Australia',
-                    sellerPhone: '1300 123 456',
-                    sellerEmail: 'contact@acme.com',
-                    itemDescription: 'Premium Widget',
-                    itemQuantity: 10,
-                    itemPrice: 99.99,
-                    accountName: 'John Doe',
-                    bankName: 'ANZ',
-                    accountNumber: '12345678',
-                    BSB: '123-456',
-                  }}
-                />
-              )}
-            </div> */}
 
             {/* Collapsible View Orders */}
             <div className="mt-10">

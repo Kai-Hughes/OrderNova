@@ -14,22 +14,27 @@ const LoginForm = () => {
     try {
       const result = await login(email, password);
       setMessage(result.message);
+
+      // optional: store email for display
       localStorage.setItem('userEmail', email);
-      navigate('/dashboard');
+
+      // ✅ redirect to dashboard
+      navigate('/dashboard', { replace: true });
+
     } catch (error) {
-      const axiosError = error;
-      console.error('Full error:', axiosError);
-      if (axiosError.response) {
-        const errorData = axiosError.response.data;
-        setMessage(`Error: ${errorData.error}`);
+      console.error('Full error:', error);
+
+      if (error.response) {
+        setMessage(`Error: ${error.response.data.error}`);
       } else {
-        setMessage(`Unexpected Error: ${axiosError.message}`);
+        setMessage(`Unexpected Error: ${error.message}`);
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+
       {/* Navbar */}
       <nav className="w-full bg-[#0d0d1a] px-8 py-4 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-violet-500">OrderNova</h1>
@@ -38,8 +43,7 @@ const LoginForm = () => {
         </Link>
       </nav>
 
-
-      {/* Hero-style Login Box */}
+      {/* Login Box */}
       <main className="flex-grow flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md bg-gray-800 p-8 rounded-2xl shadow-xl">
           <h2 className="text-3xl font-bold text-center text-violet-500 mb-6">Login</h2>
@@ -82,10 +86,10 @@ const LoginForm = () => {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="text-center text-xs text-gray-500 py-4">
         &copy; {new Date().getFullYear()} OrderNova. All rights reserved.
       </footer>
+
     </div>
   );
 };
