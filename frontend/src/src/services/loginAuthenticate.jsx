@@ -1,21 +1,22 @@
-import axios from "axios";
+import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3030";
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3030";
+// strip trailing slashes just in case
+const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
+
+console.log("[loginAuthenticate] API_BASE_URL:", API_BASE_URL);
 
 export const login = async (email, password) => {
+  // ✅ NOTE THE SLASH AFTER API_BASE_URL
+  const url = `${API_BASE_URL}/v1/users/login`;
+  console.log("[loginAuthenticate] about to POST to:", url);
+
   try {
-    const response = await axios.post(`${API_BASE_URL}v1/users/login`, {
-      email,
-      password,
-    });
-
-    if (response.data?.token) {
-      localStorage.setItem("authToken", response.data.token);
-    }
-
+    const response = await axios.post(url, { email, password });
+    console.log("[loginAuthenticate] response status:", response.status);
     return response.data;
   } catch (error) {
-    console.error("Login error:", error.response?.data || error.message);
+    console.error("[loginAuthenticate] axios error:", error);
     throw error;
   }
 };
