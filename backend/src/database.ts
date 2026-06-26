@@ -3,11 +3,11 @@ import pg, { DatabaseError } from 'pg'
 import { Order,Seller,Item,Payment,Buyer } from './object'
 import { InvalidInfo } from './Errors'
 
-const DB_END_POINT = process.env.DB_END_POINT || `localhost`
-const DB_PORT = Number(process.env.DB_PORT) || 5432
-const DB_USER_NAME = process.env.DB_USER_NAME || `ordernova_user`
-const DB_NAME = process.env.DB_NAME || `ordernova_db`
-const DB_PASSWORD = process.env.DB_PASSWORD || `ordernova_pw`
+const DB_END_POINT = process.env.DATABASE_URL || `localhost`
+const DB_PORT = Number(process.env.PGPORT) || 5432
+const DB_USER_NAME = process.env.PGUSER || `ordernova_user`
+const DB_NAME = process.env.PGNAME || `ordernova_db`
+const DB_PASSWORD = process.env.PGPASSWORD || `ordernova_pw`
 
 const { Pool } = pg
 const pool = new Pool({
