@@ -3,21 +3,18 @@ import pg, { DatabaseError } from 'pg'
 import { Order,Seller,Item,Payment,Buyer } from './object'
 import { InvalidInfo } from './Errors'
 
-const DB_END_POINT = process.env.DATABASE_URL || `localhost`
-const DB_PORT = Number(process.env.PGPORT) || 5432
-const DB_USER_NAME = process.env.PGUSER || `ordernova_user`
-const DB_NAME = process.env.PGNAME || `ordernova_db`
-const DB_PASSWORD = process.env.PGPASSWORD || `ordernova_pw`
+// const DB_END_POINT = process.env.DATABASE_URL || `localhost`
+// const DB_PORT = Number(process.env.PGPORT) || 5432
+// const DB_USER_NAME = process.env.PGUSER || `ordernova_user`
+// const DB_NAME = process.env.PGNAME || `ordernova_db`
+// const DB_PASSWORD = process.env.PGPASSWORD || `ordernova_pw`
 
 const { Pool } = pg
-const pool = new Pool({
-    user: DB_USER_NAME,
-    password: DB_PASSWORD,
-    host: DB_END_POINT,
-    port: DB_PORT,
-    database: DB_NAME
-})
 
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
+})
 
 /**
  * Connects to psql database. Run this before trying other DB functions.
