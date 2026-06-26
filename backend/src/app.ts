@@ -26,11 +26,11 @@ export const secretKey = process.env.JWT_SECRET as string;
 
 DBsetup();
 
-const port = process.env.PORT || 3030
+// const port = process.env.PORT || 3030
 
-app.listen(port, () => {
-    console.log(`🚀 Server is running on port ${port}`);
-});
+// app.listen(port, () => {
+//     console.log(`🚀 Server is running on port ${port}`);
+// });
 
 export const sessionMap: Record<string, boolean> = {};
 
