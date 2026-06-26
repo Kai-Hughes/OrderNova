@@ -34,9 +34,7 @@ router.post('/v1/users/signup', async (req: Request, res: Response) => {
         console.log(err);
         return res.status(400).json({error: "User Could Not Be Added"});
     }
-    const protocol = req.protocol; // 'http' or 'https'
-    const host = req.get('host'); // e.g., 'localhost:3000' or 'example.com'
-    const fullUrl = `${protocol}://${host}/users/login}`;
+    const fullUrl = `${process.env.FRONTEND_URL}/login`;
     try {
         await transporter.sendMail(await createSignupEmail(newUser.name, newUser.email, fullUrl));
     }

@@ -3,14 +3,14 @@ import pg, { DatabaseError } from 'pg'
 import { Order,Seller,Item,Payment,Buyer } from './object'
 import { InvalidInfo } from './Errors'
 
-const DB_END_POINT = `localhost`
-const DB_PORT = 5432
-const DB_USER_NAME = `ordernova_user`
-const DB_NAME = `ordernova_db`
-const DB_PASSWORD = `ordernova_pw`
+const DB_END_POINT = process.env.DB_END_POINT || `localhost`
+const DB_PORT = Number(process.env.DB_PORT) || 5432
+const DB_USER_NAME = process.env.DB_USER_NAME || `ordernova_user`
+const DB_NAME = process.env.DB_NAME || `ordernova_db`
+const DB_PASSWORD = process.env.DB_PASSWORD || `ordernova_pw`
 
-const { Client } = pg
-const client = new Client({
+const { Pool } = pg
+const pool = new Pool({
     user: DB_USER_NAME,
     password: DB_PASSWORD,
     host: DB_END_POINT,
@@ -22,15 +22,17 @@ const client = new Client({
 /**
  * Connects to psql database. Run this before trying other DB functions.
  */
-export async function DBConnect() {
-    await client.connect();
-}
+
+// LEGACY: replaced by pool for concurrency issues
+// export async function DBConnect() {
+//     await client.connect();
+// }
 
 /**
  * Disconnect from psql database. Run this after using database.
  */
 export async function DBDisconnect() {
-    await client.end();
+    await pool.end();
 }
 
 /**
@@ -39,9 +41,9 @@ export async function DBDisconnect() {
 export async function DBclear() {
     // await client.query(
     //     `drop table if exists invoices;`);
-    await client.query(
+    await pool.query(
         `drop table if exists ubldocs;`);
-    await client.query(
+    await pool.query(
         `drop table if exists users;`);
 }
 
@@ -49,10 +51,10 @@ export async function DBempty() {
     // await client.query(
     //     'delete from invoices'
     // );
-    await client.query(
+    await pool.query(
         'delete from ubldocs'
     );
-    await client.query(
+    await pool.query(
         'delete from users'
     );
 }
@@ -61,7 +63,7 @@ export async function DBempty() {
  * Adds the tables users, and ubdocs to the database.
  */
 export async function DBsetup() {
-    await client.query(
+    await pool.query(
         `create table if not exists users(
         userId text primary key,
         userEmail text not null unique,
@@ -70,7 +72,7 @@ export async function DBsetup() {
         password text not null);`);
 
 
-    await client.query(
+    await pool.query(
         `create table if not exists ubldocs(
         orderId text primary key,
         userId text references users(userId),
@@ -97,7 +99,7 @@ export async function DBsetup() {
  */
 export async function DBaddUser(userId: string, userEmail: String,
     name: String, phone: String, password: String) {
-    await client.query(
+    await pool.query(
         `insert into users(userId, userEmail, name, phone, password) values
         ('${userId}', '${userEmail}', '${name}', '${phone}', '${password}');`);
 }
@@ -107,7 +109,7 @@ export async function DBaddUser(userId: string, userEmail: String,
  * @param userId 
  */
 export async function DBremoveUser(userId: string) {
-    await client.query(
+    await pool.query(
         `delete from users u where u.userId = '${userId};'`);
 }
 
@@ -121,7 +123,7 @@ export async function DBgetUserInfo(userId: String):
         userid: String, useremail: String, name: String, phone: String,
         password: String
     }> {
-    const ret = await client.query(
+    const ret = await pool.query(
         `select * from users u where u.userId = '${userId}';`);
 
     if (ret.rows.length <= 0) {
@@ -140,7 +142,7 @@ export async function DBgetUserInfo(userId: String):
  */
 export async function DBgetUserId(userEmail: String):
     Promise<{ userid: String }> {
-    const ret = await client.query(
+    const ret = await pool.query(
         `select userid from users u where u.userEmail = '${userEmail}';`);
 
     return new Promise((resolve) => {
@@ -157,7 +159,7 @@ export async function DBgetUserId(userEmail: String):
  */
 export async function DBaddUBLDoc(userId: String, fileContents: String,
     dateAdded: Number, dateLastModified: Number, orderId: String) {
-    await client.query(
+    await pool.query(
         `insert into ubldocs(orderid, userId, fileContents, dateAdded, 
         dateLastModified) values
         ('${orderId}', '${userId}', '${fileContents}', ${dateAdded}, ${dateLastModified});`);
@@ -168,7 +170,7 @@ export async function DBaddUBLDoc(userId: String, fileContents: String,
  * @param orderId - orderId of the ubl doc being removed.
  */
 export async function DBremoveUBLDoc(orderId: String) {
-    await client.query(
+    await pool.query(
         `delete from ubldocs u where u.orderId = '${orderId}';`);
 }
 
@@ -180,7 +182,7 @@ export async function DBremoveUBLDoc(orderId: String) {
  */
 export async function DBlistUserUBLDocs(userId: String):
     Promise<{ orderId: String }[]> {
-    const res = await client.query(
+    const res = await pool.query(
         `select orderId from ubldocs u where u.userId = '${userId}';`);
 
     return new Promise((resolve) => {
@@ -198,7 +200,7 @@ export async function DBgetDoc(orderId: String):
         orderid: String, userid: String,
         filecontents: String, dateadded: Number, datelastmodified: Number
     }> {
-    const res = await client.query(
+    const res = await pool.query(
         `select * from ubldocs u where u.orderId = '${orderId}';`);
     
     if (res.rowCount == 0 || res.rowCount == null) {
@@ -226,7 +228,7 @@ export async function DBgetOrder(orderId: string): Promise<{
     payment: Payment;
     timestamp: string;
 }> {
-    const res = await client.query(
+    const res = await pool.query(
         `SELECT * FROM ubldocs WHERE orderid = $1;`, [orderId]
     );
 
@@ -250,7 +252,7 @@ export async function DBgetOrder(orderId: string): Promise<{
 export async function DBupdateUBLDoc( orderId: string,
     fileContents: string, dateLastModified: Number
 ) {
-    const res = await client.query(
+    const res = await pool.query(
         `UPDATE ubldocs 
         SET fileContents = $1, dateLastModified = $2 
         WHERE orderId = $3`,
@@ -266,7 +268,7 @@ export async function DBupdateUBLDoc( orderId: string,
  * Return all docs belonging to a user. We can check if a given fileId belongs to that user.
  */
 export async function DBgetUBLDocs(userId: string): Promise<{ orderId: string, fileContents: string, dateAdded: number, dateLastModified: number }[]> {
-    const res = await client.query(
+    const res = await pool.query(
       `SELECT orderId, fileContents, dateAdded, dateLastModified FROM ubldocs WHERE userId = '${userId}';`
     );
     return res.rows.map(row => ({
@@ -278,7 +280,7 @@ export async function DBgetUBLDocs(userId: string): Promise<{ orderId: string, f
   }
 
   export async function DBremoveOrder(orderId: string) {
-    await client.query(
+    await pool.query(
       `DELETE FROM ubldocs WHERE orderId = $1;`,
       [orderId]
     );

@@ -9,6 +9,8 @@ export const generateToken = (userId: string, email: string) => {
     return jwt.sign(
         { userId: userId, email: email, }, // Payload
         secretKey, // Secret Key
+        { expiresIn: '24h' } // or '7d', whatever makes sense for a demo
+
     );
 };
 

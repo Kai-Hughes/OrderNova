@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express'; 
 import cors from "cors";
-import { DBConnect, DBsetup } from './database';
+import { DBsetup } from './database';
 const path = require("path");
 import signupRoute from './signup';
 import loginRoute from './login';
@@ -22,17 +22,18 @@ import bulkCreateRoute from './bulkOrderCreate';
 import { otherAPIAuth } from './externalAuth';
 
 export const app = express();
-export const secretKey = 'key';
+export const secretKey = process.env.JWT_SECRET as string;
 
 DBsetup();
-DBConnect();
 
 const port = process.env.PORT || 3030
 
+app.listen(port, () => {
+    console.log(`🚀 Server is running on port ${port}`);
+});
+
 export const sessionMap: Record<string, boolean> = {};
-// export const server = app.listen(port, () => {
-//     console.log(`🚀 Server is running at http://localhost:3030`);
-// });
+
 app.use(cors({ origin: "*" }));
 app.options("*", cors());
 
