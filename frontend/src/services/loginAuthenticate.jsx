@@ -1,13 +1,13 @@
 import axios from 'axios';
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3030";
-// strip trailing slashes just in case
-const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
 
-console.log("[loginAuthenticate] API_BASE_URL:", API_BASE_URL);
+// const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
+
+// console.log("[loginAuthenticate] API_BASE_URL:", API_BASE_URL);
 
 export const login = async (email, password) => {
-  const url = `${API_BASE_URL}/v1/users/login`;
+  const url = `${rawBaseUrl}/v1/users/login`;
   console.log("[loginAuthenticate] about to POST to:", url);
 
   try {
