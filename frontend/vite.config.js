@@ -8,7 +8,8 @@ export default defineConfig({
   },
   plugins: [react()],
   build: {
-    outDir: '../dist', // build into /dist at project root
-    emptyOutDir: true
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    }
   } 
 })

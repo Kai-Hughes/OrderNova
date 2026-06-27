@@ -21,6 +21,7 @@ import ViewSpecificInvoice from './pages/ViewSpecificInvoice'
 import ViewOrderPage from './pages/viewOrder';
 import ViewOrdersPage from './pages/viewOrders';
 import BulkOrder from "./pages/BulkOrder";
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
 
@@ -35,7 +36,14 @@ function App() {
   return (
     <>
       <Routes>
-        <Route exact path="/dashboard" element={<Dashboard />} />
+                <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
         <Route exact path="/signup" element={<SignupForm />} />
         <Route exact path="/login" element={<LoginForm />} />
         <Route exact path="/" element={<HomePage />} />
