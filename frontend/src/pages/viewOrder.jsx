@@ -4,9 +4,9 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
 import { xml2js } from 'xml-js';
+import { FaCheck, FaPen, FaTrash } from 'react-icons/fa';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3030";
-
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3030';
 
 const ViewOrderPage = () => {
   const { orderId } = useParams();
@@ -46,7 +46,7 @@ const ViewOrderPage = () => {
         timestamp: timestampDate && !isNaN(timestampDate.getTime()) ? timestampDate.toLocaleString() : 'Invalid Date',
       });
     } catch (err) {
-      console.error('❌ Fetch error:', err);
+      console.error('Fetch error:', err);
       setError('Failed to load order.');
     }
   };
@@ -55,7 +55,6 @@ const ViewOrderPage = () => {
     fetchOrder();
   }, [orderId]);
 
-  const handleBack = () => navigate('/dashboard');
   const handleToggleEdit = () => setIsEditing(!isEditing);
 
   const handleChange = (field, value) => {
@@ -99,35 +98,48 @@ const ViewOrderPage = () => {
       setIsEditing(false);
       await fetchOrder();
     } catch (err) {
-      console.error('❌ Save error:', err);
+      console.error('Save error:', err);
       alert('Failed to save changes.');
     }
   };
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3030/v2/users/orders/delete/${orderId}`, {
+      await axios.delete(`${API_BASE_URL}/v2/users/orders/delete/${orderId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
       navigate('/dashboard');
     } catch (err) {
-      console.error('❌ Delete error:', err);
+      console.error('Delete error:', err);
       alert('Failed to delete order.');
     }
   };
 
-  if (error) return <div className="text-center text-red-500">{error}</div>;
-  if (!orderData) return <div className="text-center mt-10 text-gray-600">Loading...</div>;
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
+        <p className="text-red-600 dark:text-red-400">{error}</p>
+      </div>
+    );
+  }
+
+  if (!orderData) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-white dark:bg-gray-900">
+        <p className="text-gray-500 dark:text-gray-400">Loading…</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-gray-900">
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        <div className="max-w-6xl mx-auto mt-10 mb-6 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div className="max-w-6xl mx-auto mt-10 mb-6 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
           <h2 className="text-3xl font-extrabold text-violet-600 dark:text-violet-400 tracking-tight text-center md:text-left">
             Order #{orderId}
           </h2>
@@ -135,27 +147,30 @@ const ViewOrderPage = () => {
             {isEditing && (
               <button
                 onClick={handleSave}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm font-medium rounded-md shadow transition"
+                className="flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
               >
+                <FaCheck className="text-xs" />
                 Save Changes
               </button>
             )}
             <button
               onClick={handleToggleEdit}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium rounded-md shadow transition"
+              className="flex items-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
             >
+              <FaPen className="text-xs" />
               {isEditing ? 'Cancel Edit' : 'Edit Order'}
             </button>
             <button
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 text-sm font-medium rounded-md shadow transition"
+              className="flex items-center gap-2 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/50 px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition-colors"
             >
+              <FaTrash className="text-xs" />
               Delete Order
             </button>
           </div>
         </div>
 
-        <main className="flex-grow w-full max-w-5xl mx-auto px-8 py-10 bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700">
+        <main className="flex-grow w-full max-w-5xl mx-auto px-8 py-10 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-12">
           <form className="space-y-10">
             <Section title="Buyer Information">
               <Grid>
@@ -196,7 +211,7 @@ const ViewOrderPage = () => {
           </form>
         </main>
 
-        <footer className="bg-gray-800 text-center text-xs text-gray-400 py-4 mt-auto">
+        <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700/60 text-center text-xs text-gray-400 dark:text-gray-500 py-4 mt-auto">
           &copy; {new Date().getFullYear()} OrderNova. All rights reserved.
         </footer>
       </div>
@@ -222,12 +237,12 @@ const Info = ({ label, value, field, onChange, editable = false }) => (
     <label className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{label}</label>
     {editable ? (
       <input
-        className="w-full bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-md border border-gray-300 dark:border-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        className="w-full bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition"
         value={value}
         onChange={(e) => onChange(field, e.target.value)}
       />
     ) : (
-      <div className="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-md border border-gray-200 dark:border-gray-700 text-sm shadow-sm">
+      <div className="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 text-sm shadow-sm">
         {value}
       </div>
     )}

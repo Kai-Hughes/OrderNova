@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FaChevronDown, FaArrowLeft, FaPlus, FaList, FaFileImport } from 'react-icons/fa';
 
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
@@ -70,9 +71,10 @@ function Dashboard() {
               <div>
                 <button
                   onClick={handleBackHome}
-                  className="px-4 py-2 rounded-md border border-gray-500 text-sm text-gray-100 hover:bg-gray-800 transition"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  ← Back to Home
+                  <FaArrowLeft className="text-xs" />
+                  Back to Home
                 </button>
               </div>
             </div>
@@ -86,37 +88,34 @@ function Dashboard() {
             </div>
 
             {/* Collapsible Create Order */}
-            <div className="mt-10">
-              <button
-                className="w-full text-left text-lg font-bold text-gray-800 dark:text-gray-100 mb-2"
-                onClick={() => setShowCreateOrder(!showCreateOrder)}
-              >
-                {showCreateOrder ? '▼' : '▶'} Create Order
-              </button>
-              {showCreateOrder && <CreateOrder />}
-            </div>
+            <CollapsibleAction
+              icon={<FaPlus />}
+              title="Create Order"
+              isOpen={showCreateOrder}
+              onToggle={() => setShowCreateOrder(!showCreateOrder)}
+            >
+              <CreateOrder />
+            </CollapsibleAction>
 
             {/* Collapsible View Orders */}
-            <div className="mt-10">
-              <button
-                className="w-full text-left text-lg font-bold text-gray-800 dark:text-gray-100 mb-2"
-                onClick={() => setShowViewOrders(!showViewOrders)}
-              >
-                {showViewOrders ? '▼' : '▶'} View Orders
-              </button>
-              {showViewOrders && <OrdersListCard userId="your-user-id-here" />}
-            </div>
+            <CollapsibleAction
+              icon={<FaList />}
+              title="View Orders"
+              isOpen={showViewOrders}
+              onToggle={() => setShowViewOrders(!showViewOrders)}
+            >
+              <OrdersListCard />
+            </CollapsibleAction>
 
             {/* Collapsible Bulk Order */}
-            <div className="mt-10">
-              <button
-                className="w-full text-left text-lg font-bold text-gray-800 dark:text-gray-100 mb-2"
-                onClick={() => setShowBulkOrder(!showBulkOrder)}
-              >
-                {showBulkOrder ? '▼' : '▶'} Bulk Order
-              </button>
-              {showBulkOrder && <OrderCSVUploader />}
-            </div>
+            <CollapsibleAction
+              icon={<FaFileImport />}
+              title="Bulk Order"
+              isOpen={showBulkOrder}
+              onToggle={() => setShowBulkOrder(!showBulkOrder)}
+            >
+              <OrderCSVUploader />
+            </CollapsibleAction>
           </div>
         </main>
 
@@ -124,6 +123,31 @@ function Dashboard() {
         <ChatBotWrapper />
 
       </div>
+    </div>
+  );
+}
+
+function CollapsibleAction({ icon, title, isOpen, onToggle, children }) {
+  return (
+    <div className="mt-8">
+      <button
+        onClick={onToggle}
+        aria-expanded={isOpen}
+        className="w-full flex items-center justify-between gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 rounded-xl px-5 py-4 shadow-sm hover:border-violet-300 dark:hover:border-violet-600/50 transition-colors"
+      >
+        <span className="flex items-center gap-3 text-base font-semibold text-gray-800 dark:text-gray-100">
+          <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-600/15 text-violet-600 dark:text-violet-400">
+            {icon}
+          </span>
+          {title}
+        </span>
+        <FaChevronDown
+          className={`text-gray-400 dark:text-gray-500 transition-transform duration-300 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
+        />
+      </button>
+      {isOpen && <div className="mt-4">{children}</div>}
     </div>
   );
 }
