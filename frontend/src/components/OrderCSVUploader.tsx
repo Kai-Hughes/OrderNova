@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import Papa from 'papaparse';
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';
+import { FaCloudUploadAlt, FaFileCsv, FaFileExcel, FaExclamationTriangle } from 'react-icons/fa';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3030';
 
 interface Order {
   [key: string]: string | number;
@@ -261,7 +264,7 @@ const OrderCSVUploader = () => {
         },
       }));
 
-      const response = await fetch('http://localhost:3030/v1/users/orders/bulk-create', {
+      const response = await fetch(`${API_BASE_URL}/v1/users/orders/bulk-create`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -286,48 +289,54 @@ const OrderCSVUploader = () => {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded shadow-md">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700/60 shadow-sm">
       <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
         Bulk Order
       </h2>
 
-      <div className="mb-4 flex gap-4">
+      <div className="mb-4 flex gap-3">
         <button
           onClick={() => downloadTemplate('csv')}
-          className="bg-blue-500 text-white hover:bg-blue-600 px-4 py-2 rounded shadow"
+          className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
-          Download CSV Template
+          <FaFileCsv className="text-violet-500" />
+          CSV Template
         </button>
         <button
           onClick={() => downloadTemplate('xlsx')}
-          className="bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded shadow"
+          className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
-          Download Excel Template
+          <FaFileExcel className="text-violet-500" />
+          Excel Template
         </button>
       </div>
 
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded p-6 text-center ${
+        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
           isDragActive
-            ? 'border-blue-500 bg-blue-50'
-            : 'border-gray-300 dark:border-gray-600'
+            ? 'border-violet-500 bg-violet-50 dark:bg-violet-500/10'
+            : 'border-gray-300 dark:border-gray-600 hover:border-violet-400 dark:hover:border-violet-500/60'
         }`}
       >
         <input {...getInputProps()} />
+        <FaCloudUploadAlt className={`mx-auto text-3xl mb-2 ${isDragActive ? 'text-violet-500' : 'text-gray-400 dark:text-gray-500'}`} />
         {isDragActive ? (
-          <p className="text-blue-500">Drop the file here...</p>
+          <p className="text-violet-600 dark:text-violet-400 text-sm font-medium">Drop the file here…</p>
         ) : (
-          <p className="text-gray-500 dark:text-gray-400">
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Drag and drop a CSV or XLSX file here, or click to select a file
           </p>
         )}
       </div>
 
       {errors.length > 0 && (
-        <div className="mt-4 text-red-600">
-          <h3 className="font-medium mb-2">Validation Errors:</h3>
-          <ul className="list-disc pl-5">
+        <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/50 rounded-lg p-4">
+          <h3 className="flex items-center gap-2 font-medium text-red-700 dark:text-red-400 mb-2 text-sm">
+            <FaExclamationTriangle className="text-xs" />
+            Validation Errors
+          </h3>
+          <ul className="list-disc pl-5 text-sm text-red-600 dark:text-red-400 space-y-0.5">
             {errors.map((error, idx) => (
               <li key={idx}>{error}</li>
             ))}
@@ -337,33 +346,33 @@ const OrderCSVUploader = () => {
 
       {orders.length > 0 && (
         <div className="mt-6">
-          <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Preview Orders:
+          <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-2 text-sm">
+            Preview Orders
           </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 dark:border-gray-600 text-sm">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-100 dark:bg-gray-700">
+                <tr className="bg-gray-50 dark:bg-gray-900">
                   {Object.keys(orders[0]).map((key) => (
                     <th
                       key={key}
-                      className="p-2 border border-gray-300 dark:border-gray-600"
+                      className="p-2.5 border-b border-gray-200 dark:border-gray-700 text-left font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap"
                     >
                       {key}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {orders.map((order, idx) => (
                   <tr
                     key={idx}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-800"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-900/60 transition-colors"
                   >
                     {Object.values(order).map((value, i) => (
                       <td
                         key={i}
-                        className="p-2 border border-gray-300 dark:border-gray-600"
+                        className="p-2.5 text-gray-700 dark:text-gray-300 whitespace-nowrap"
                       >
                         {String(value)}
                       </td>
@@ -380,7 +389,7 @@ const OrderCSVUploader = () => {
         <div className="mt-4">
           <button
             onClick={handleSubmit}
-            className="btn bg-green-500 text-white hover:bg-green-600 px-4 py-2 rounded"
+            className="bg-violet-600 hover:bg-violet-700 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
           >
             Submit Orders
           </button>

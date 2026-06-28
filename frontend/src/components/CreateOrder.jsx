@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { createOrder } from '../services/createOrderAuthenticate';
 import { useNavigate } from 'react-router-dom';
+import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 
 function CreateOrderCard() {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ function CreateOrderCard() {
   });
 
   const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +43,9 @@ function CreateOrderCard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
+    setIsSubmitting(true);
+
     try {
       const payload = {
         buyer: {
@@ -85,11 +90,13 @@ function CreateOrderCard() {
     } catch (err) {
       console.error(err);
       setMessage('Failed to create order.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 shadow-xs rounded-xl px-6 py-6">
+    <div className="w-full max-w-7xl mx-auto bg-white dark:bg-gray-800 shadow-sm rounded-xl px-6 py-6 border border-gray-200 dark:border-gray-700/60">
       <header className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Create Order</h2>
       </header>
@@ -135,11 +142,20 @@ function CreateOrderCard() {
           <InputField label="BSB" name="BSB" type="text" placeholder="e.g. 123-456" value={formData.BSB} onChange={handleChange} />
         </CollapsibleSection>
 
-        <div className="text-right pt-2">
-          <button type="submit" className="bg-violet-600 text-white text-sm font-medium px-5 py-2 rounded hover:bg-violet-700 transition">
-            Submit Order
+        <div className="flex items-center justify-end gap-3 pt-2">
+          {message && (
+            <p className="flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+              <FaExclamationCircle className="text-xs" />
+              {message}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 dark:disabled:bg-violet-800 disabled:cursor-not-allowed text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors"
+          >
+            {isSubmitting ? 'Submitting…' : 'Submit Order'}
           </button>
-          {message && <p className="mt-2 text-sm text-red-500">{message}</p>}
         </div>
       </form>
     </div>
@@ -156,7 +172,7 @@ function InputField({ label, name, type, placeholder, value, onChange }) {
         value={value}
         onChange={onChange}
         placeholder={placeholder}
-        className="w-full border border-gray-300 dark:border-gray-700 rounded px-3 py-2 bg-white dark:bg-gray-900 text-sm"
+        className="w-full border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition"
       />
     </div>
   );
@@ -165,10 +181,15 @@ function InputField({ label, name, type, placeholder, value, onChange }) {
 function CollapsibleSection({ title, children }) {
   const [isOpen, setIsOpen] = useState(true);
   return (
-    <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="bg-gray-50 dark:bg-gray-900/60 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
       <button type="button" onClick={() => setIsOpen(!isOpen)} className="w-full flex justify-between items-center text-left">
-        <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-4">{title}</h3>
-        <span className="text-xs text-violet-600 dark:text-violet-400">{isOpen ? 'Hide' : 'Show'}</span>
+        <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-0">{title}</h3>
+        <span className="flex items-center gap-1.5 text-xs font-medium text-violet-600 dark:text-violet-400">
+          {isOpen ? (
+            <FaCheckCircle className="text-[10px]" />
+          ) : null}
+          {isOpen ? 'Hide' : 'Show'}
+        </span>
       </button>
       {isOpen && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">{children}</div>}
     </div>
