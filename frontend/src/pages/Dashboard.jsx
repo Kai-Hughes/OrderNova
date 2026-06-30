@@ -55,14 +55,23 @@ function Dashboard() {
         {/* Site header */}
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        <main className="grow">
-          <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
+        <main className="grow relative">
+          {/* Ambient glow, matching homepage hero treatment */}
+          <div
+            // className="pointer-events-none absolute top-0 left-0 right-0 h-72 bg-[radial-gradient(circle_at_20%_0%,_theme(colors.violet.400/0.10),_transparent_60%)] dark:bg-[radial-gradient(circle_at_20%_0%,_theme(colors.violet.600/0.18),_transparent_60%)]"
+            aria-hidden="true"
+          />
+
+          <div className="relative px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
 
             {/* Dashboard actions */}
-            <div className="sm:flex sm:justify-between sm:items-center mb-8">
+            <div className="sm:flex sm:justify-between sm:items-end mb-10">
               {/* Left: Title */}
               <div className="mb-4 sm:mb-0">
-                <h1 className="text-2xl md:text-3xl text-gray-800 dark:text-gray-100 font-bold">
+                <span className="text-xs font-semibold tracking-widest text-violet-500 dark:text-violet-400 uppercase">
+                  Overview
+                </span>
+                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mt-1">
                   Dashboard
                 </h1>
               </div>
@@ -80,11 +89,18 @@ function Dashboard() {
             </div>
 
             {/* Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
               <AnalyticsCard className="md:col-span-2" />
               <AverageOrderValueCard />
               <TopProductCategoriesCard />
               <TotalOrdersCard />
+            </div>
+
+            {/* Quick Actions */}
+            <div className="mb-4">
+              <span className="text-xs font-semibold tracking-widest text-violet-500 dark:text-violet-400 uppercase">
+                Quick actions
+              </span>
             </div>
 
             {/* Collapsible Create Order */}
@@ -129,14 +145,14 @@ function Dashboard() {
 
 function CollapsibleAction({ icon, title, isOpen, onToggle, children }) {
   return (
-    <div className="mt-8">
+    <div className="mt-4">
       <button
         onClick={onToggle}
         aria-expanded={isOpen}
-        className="w-full flex items-center justify-between gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 rounded-xl px-5 py-4 shadow-sm hover:border-violet-300 dark:hover:border-violet-600/50 transition-colors"
+        className="w-full flex items-center justify-between gap-3 bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 rounded-2xl px-5 py-4 shadow-sm hover:border-violet-300 dark:hover:border-violet-600/50 transition-colors"
       >
-        <span className="flex items-center gap-3 text-base font-semibold text-gray-800 dark:text-gray-100">
-          <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-600/15 text-violet-600 dark:text-violet-400">
+        <span className="flex items-center gap-3 text-base font-semibold text-gray-900 dark:text-white">
+          <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-violet-100 dark:bg-violet-600/15 text-violet-600 dark:text-violet-400">
             {icon}
           </span>
           {title}

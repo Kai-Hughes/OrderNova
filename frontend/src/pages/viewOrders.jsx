@@ -39,16 +39,24 @@ const ViewOrdersPage = () => {
       <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-gray-900">
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        <div className="max-w-6xl mx-auto mt-10 mb-6 px-6 text-center w-full">
-          <h2 className="text-3xl font-extrabold text-violet-600 dark:text-violet-400 tracking-tight">
+        <div
+          // className="pointer-events-none absolute top-0 left-0 right-0 h-64 bg-[radial-gradient(circle_at_30%_0%,_theme(colors.violet.400/0.10),_transparent_60%)] dark:bg-[radial-gradient(circle_at_30%_0%,_theme(colors.violet.600/0.18),_transparent_60%)]"
+          aria-hidden="true"
+        />
+
+        <div className="relative max-w-6xl mx-auto mt-10 mb-6 px-6 text-center w-full">
+          <span className="text-xs font-semibold tracking-widest text-violet-500 dark:text-violet-400 uppercase">
+            Order history
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mt-2">
             Your Orders
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
             View the list of orders you've created and manage them.
           </p>
         </div>
 
-        <main className="flex-grow max-w-4xl mx-auto px-6 mb-12 w-full">
+        <main className="relative flex-grow max-w-4xl mx-auto px-6 mb-12 w-full">
           {message && <p className="text-red-600 dark:text-red-400 text-sm mb-4 text-center">{message}</p>}
 
           {isLoading ? (
@@ -58,9 +66,9 @@ const ViewOrdersPage = () => {
               {orders.map((id, index) => (
                 <div
                   key={index}
-                  className="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6 shadow-sm hover:shadow-md hover:border-violet-300 dark:hover:border-violet-600/50 transition-all"
+                  className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/60 p-6 shadow-sm hover:shadow-md hover:border-violet-300 dark:hover:border-violet-600/50 transition-all"
                 >
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">Order #{id}</h3>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Order #{id}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Click below to view full details.</p>
                   <Link
                     to={`/orders/${id}`}

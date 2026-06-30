@@ -31,8 +31,8 @@ const OrdersListCard = () => {
   }, []);
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700/60 shadow-sm rounded-xl p-6">
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">Your Orders</h2>
+    <div className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 shadow-sm rounded-2xl p-6">
+      <h2 className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-4">Your Orders</h2>
 
       {message && <p className="text-sm text-red-600 dark:text-red-400 mb-4">{message}</p>}
 

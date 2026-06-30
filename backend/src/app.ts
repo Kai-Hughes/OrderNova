@@ -20,9 +20,11 @@ import validateInvoiceRoute from './invoiceValidate';
 import analyticsRoute from './analytics';
 import bulkCreateRoute from './bulkOrderCreate';
 import { otherAPIAuth } from './externalAuth';
+import dotenv from 'dotenv';
 
 export const app = express();
 export const secretKey = process.env.JWT_SECRET as string;
+dotenv.config();
 
 DBsetup();
 
@@ -36,7 +38,6 @@ export const sessionMap: Record<string, boolean> = {};
 
 app.use(cors({ origin: "*" }));
 app.options("*", cors());
-
 
 app.use(express.json());
 

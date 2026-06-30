@@ -4,14 +4,149 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
 import { xml2js } from 'xml-js';
-import { FaCheck, FaPen, FaTrash } from 'react-icons/fa';
+import { FaCheck, FaPen, FaTrash, FaCode, FaCopy, FaCheckCircle } from 'react-icons/fa';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3030';
+
+/**
+ * Pretty-prints a flat/minified XML string with consistent 2-space indentation.
+ * Backends commonly emit XML with no whitespace between tags — this reformats
+ * it for human-readable display without altering the actual content.
+ */
+function formatXml(xml) {
+  if (!xml) return '';
+  const PADDING = '  ';
+  const collapsed = xml.replace(/>\s*</g, '><').trim();
+  const withBreaks = collapsed.replace(/></g, '>\n<');
+  const lines = withBreaks.split('\n');
+
+  let pad = 0;
+  const formatted = lines.map((line) => {
+    if (line.match(/^<\/\w/)) {
+      pad = Math.max(pad - 1, 0);
+    }
+    const indented = PADDING.repeat(pad) + line;
+    if (line.match(/^<\?/)) {
+      // XML declaration — no indent change
+    } else if (line.match(/^<\w[^>]*[^/]>$/) && !line.match(/^<\w[^>]*\/>$/)) {
+      pad += 1;
+    }
+    return indented;
+  });
+
+  return formatted.join('\n');
+}
+
+/**
+ * Tokenizes formatted XML into syntax-highlighted spans: tags, attribute
+ * names, attribute values, and text content each get their own color.
+ */
+function XmlSyntax({ xml }) {
+  const tokenPattern = /(<\?[\s\S]*?\?>)|(<\/?[\w:.-]+)|(\s[\w:.-]+(?==))|(="[^"]*")|(\/?>)|([^<]+)/g;
+
+  const nodes = [];
+  let match;
+  let key = 0;
+
+  while ((match = tokenPattern.exec(xml)) !== null) {
+    const [, decl, tagOpen, attrName, attrValue, tagClose, text] = match;
+    if (decl) {
+      nodes.push(
+        <span key={key++} className="text-gray-400 dark:text-gray-500">
+          {decl}
+        </span>
+      );
+    } else if (tagOpen) {
+      nodes.push(
+        <span key={key++} className="text-violet-600 dark:text-violet-400 font-medium">
+          {tagOpen}
+        </span>
+      );
+    } else if (attrName) {
+      nodes.push(
+        <span key={key++} className="text-sky-600 dark:text-sky-400">
+          {attrName}
+        </span>
+      );
+    } else if (attrValue) {
+      nodes.push(
+        <span key={key++} className="text-emerald-600 dark:text-emerald-400">
+          {attrValue}
+        </span>
+      );
+    } else if (tagClose) {
+      nodes.push(
+        <span key={key++} className="text-violet-600 dark:text-violet-400 font-medium">
+          {tagClose}
+        </span>
+      );
+    } else if (text) {
+      nodes.push(
+        <span key={key++} className="text-gray-800 dark:text-gray-200">
+          {text}
+        </span>
+      );
+    }
+  }
+
+  return <>{nodes}</>;
+}
+
+function XmlDocumentViewer({ xml }) {
+  const [copied, setCopied] = useState(false);
+  const formatted = formatXml(xml);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(formatted);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  };
+
+  if (!xml) return null;
+
+  return (
+    <section className="mb-6">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="flex items-center gap-2 text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase tracking-widest">
+          <FaCode className="text-xs" />
+          UBL XML Document
+        </h3>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-violet-600 dark:hover:text-violet-400 transition-colors"
+        >
+          {copied ? (
+            <>
+              <FaCheckCircle className="text-emerald-500" />
+              Copied
+            </>
+          ) : (
+            <>
+              <FaCopy />
+              Copy
+            </>
+          )}
+        </button>
+      </div>
+      <pre className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-950 px-5 py-4 text-xs leading-relaxed font-mono whitespace-pre">
+        <code>
+          <XmlSyntax xml={formatted} />
+        </code>
+      </pre>
+    </section>
+  );
+}
 
 const ViewOrderPage = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const [orderData, setOrderData] = useState(null);
+  const [rawXml, setRawXml] = useState('');
   const [error, setError] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +158,10 @@ const ViewOrderPage = () => {
           Authorization: `Bearer ${localStorage.getItem('authToken')}`,
         },
       });
+
+      // Keep the raw XML exactly as returned by the backend for display.
+      setRawXml(typeof res.data === 'string' ? res.data : '');
+
       const json = xml2js(res.data, { compact: true });
       const order = json.Order || {};
       const item = Array.isArray(order.items) ? order.items[0] : order.items;
@@ -139,10 +278,15 @@ const ViewOrderPage = () => {
       <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden bg-gray-50 dark:bg-gray-900">
         <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        <div className="max-w-6xl mx-auto mt-10 mb-6 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
-          <h2 className="text-3xl font-extrabold text-violet-600 dark:text-violet-400 tracking-tight text-center md:text-left">
-            Order #{orderId}
-          </h2>
+        <div className="relative max-w-6xl mx-auto mt-10 mb-6 px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 w-full">
+          <div className="text-center md:text-left">
+            <span className="text-xs font-semibold tracking-widest text-violet-500 dark:text-violet-400 uppercase">
+              Order details
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mt-2">
+              Order #{orderId}
+            </h2>
+          </div>
           <div className="flex flex-wrap gap-3 justify-center md:justify-end">
             {isEditing && (
               <button
@@ -170,7 +314,7 @@ const ViewOrderPage = () => {
           </div>
         </div>
 
-        <main className="flex-grow w-full max-w-5xl mx-auto px-8 py-10 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-12">
+        <main className="relative flex-grow w-full max-w-5xl mx-auto px-8 py-10 bg-white dark:bg-gray-800/60 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 mb-12">
           <form className="space-y-10">
             <Section title="Buyer Information">
               <Grid>
@@ -208,6 +352,8 @@ const ViewOrderPage = () => {
             <Section title="Order Timestamp">
               <Info label="Created At" value={orderData.timestamp} />
             </Section>
+
+            <XmlDocumentViewer xml={rawXml} />
           </form>
         </main>
 
@@ -221,7 +367,7 @@ const ViewOrderPage = () => {
 
 const Section = ({ title, children }) => (
   <section className="mb-6">
-    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2 tracking-wide">
+    <h3 className="text-xs font-semibold text-violet-600 dark:text-violet-400 uppercase mb-3 tracking-widest">
       {title}
     </h3>
     <div className="space-y-4">{children}</div>

@@ -1,0 +1,64 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sessionMap = exports.secretKey = exports.app = void 0;
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const database_1 = require("./database");
+const path = require("path");
+const signup_1 = __importDefault(require("./signup"));
+const login_1 = __importDefault(require("./login"));
+const logout_1 = __importDefault(require("./logout"));
+const swagger_1 = __importDefault(require("./swagger"));
+const orderCreate_1 = __importDefault(require("./orderCreate"));
+const orderUpdate_1 = __importDefault(require("./orderUpdate"));
+const orderFetch_1 = __importDefault(require("./orderFetch"));
+const orderFetchAll_1 = __importDefault(require("./orderFetchAll"));
+const orderDelete_1 = __importDefault(require("./orderDelete"));
+const health_1 = __importDefault(require("./health"));
+const invoiceGenerate_1 = __importDefault(require("./invoiceGenerate"));
+const invoiceFetch_1 = __importDefault(require("./invoiceFetch"));
+const invoiceDelete_1 = __importDefault(require("./invoiceDelete"));
+const invoiceUpdate_1 = __importDefault(require("./invoiceUpdate"));
+const invoiceValidate_1 = __importDefault(require("./invoiceValidate"));
+const analytics_1 = __importDefault(require("./analytics"));
+const bulkOrderCreate_1 = __importDefault(require("./bulkOrderCreate"));
+const dotenv_1 = __importDefault(require("dotenv"));
+exports.app = (0, express_1.default)();
+exports.secretKey = process.env.JWT_SECRET;
+dotenv_1.default.config();
+(0, database_1.DBsetup)();
+// const port = process.env.PORT || 3030
+// app.listen(port, () => {
+//     console.log(`🚀 Server is running on port ${port}`);
+// });
+exports.sessionMap = {};
+exports.app.use((0, cors_1.default)({ origin: "*" }));
+exports.app.options("*", (0, cors_1.default)());
+exports.app.use(express_1.default.json());
+exports.app.use(express_1.default.static('public'));
+exports.app.use(express_1.default.static(path.join(__dirname, '../public')));
+exports.app.use(signup_1.default);
+exports.app.use(login_1.default);
+exports.app.use(logout_1.default);
+exports.app.use(swagger_1.default);
+exports.app.use(orderCreate_1.default);
+exports.app.use(orderUpdate_1.default);
+exports.app.use(orderFetch_1.default);
+exports.app.use(orderFetchAll_1.default);
+exports.app.use(orderDelete_1.default);
+exports.app.use(health_1.default);
+exports.app.use(invoiceGenerate_1.default);
+exports.app.use(invoiceFetch_1.default);
+exports.app.use(invoiceDelete_1.default);
+exports.app.use(invoiceValidate_1.default);
+exports.app.use(invoiceUpdate_1.default);
+exports.app.use(analytics_1.default);
+exports.app.use(bulkOrderCreate_1.default);
+// Sanity Check
+exports.app.get('/test', (req, res) => {
+    return res.status(200).send({ message: "That'll do it" });
+});
+exports.default = exports.app;

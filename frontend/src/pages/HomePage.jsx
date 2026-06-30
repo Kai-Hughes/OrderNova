@@ -11,6 +11,7 @@ import {
   FaChevronRight,
   FaChevronDown,
   FaShieldAlt,
+  FaCode,
 } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 
@@ -175,6 +176,149 @@ function OrderTicket() {
   );
 }
 
+// Stub XML document used purely for the homepage's live-typing visual --
+// not a real order, just representative output to show what the platform
+// actually generates under the hood.
+const STUB_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Order>
+  <orderId>9fLqM2pXkz8wYh3-Nbz</orderId>
+  <buyer>
+    <buyerName>Harbour & Co.</buyerName>
+    <buyerEmail>accounts@harbourco.com</buyerEmail>
+    <buyerCountry>Australia</buyerCountry>
+  </buyer>
+  <seller>
+    <sellerName>OrderNova Pty Ltd</sellerName>
+    <sellerCountry>Australia</sellerCountry>
+  </seller>
+  <items>
+    <itemDescription>Industrial Shelving Unit</itemDescription>
+    <itemQuantity>14</itemQuantity>
+    <itemPrice>344.29</itemPrice>
+  </items>
+  <timestamp>2026-06-30T09:12:04.118Z</timestamp>
+</Order>`;
+
+// Lightweight XML syntax tokenizer -- colors tags, attributes, and text
+// content distinctly. The declaration/attribute-value patterns tolerate
+// truncation (no closing ?> or closing quote yet) since this renders a
+// live, in-progress typing animation, not always-complete XML.
+function XmlSyntax({ xml }) {
+  const tokenPattern = /(<\?[\s\S]*?(\?>|$))|(<\/?[\w:.-]*)|(\s[\w:.-]+(?==))|(="[^"]*"?)|(\/?>)|([^<]+)/g;
+  const nodes = [];
+  let match;
+  let key = 0;
+
+  while ((match = tokenPattern.exec(xml)) !== null) {
+    if (match[0] === '') {
+      tokenPattern.lastIndex++;
+      continue;
+    }
+    const [, decl, , tagOpen, attrName, attrValue, tagClose, text] = match;
+    if (decl !== undefined) {
+      nodes.push(<span key={key++} className="text-gray-500">{match[0]}</span>);
+    } else if (tagOpen !== undefined) {
+      nodes.push(<span key={key++} className="text-violet-400 font-medium">{match[0]}</span>);
+    } else if (attrName !== undefined) {
+      nodes.push(<span key={key++} className="text-sky-400">{match[0]}</span>);
+    } else if (attrValue !== undefined) {
+      nodes.push(<span key={key++} className="text-emerald-400">{match[0]}</span>);
+    } else if (tagClose !== undefined) {
+      nodes.push(<span key={key++} className="text-violet-400 font-medium">{match[0]}</span>);
+    } else if (text !== undefined) {
+      nodes.push(<span key={key++} className="text-gray-200">{match[0]}</span>);
+    }
+  }
+
+  return <>{nodes}</>;
+}
+
+// Types the stub XML out character by character, holds it briefly, fades
+// out, then restarts -- a slow, deliberate loop rather than an abrupt reset.
+function XmlTypewriterSection() {
+  const [visibleChars, setVisibleChars] = useState(0);
+  const [phase, setPhase] = useState('typing'); // 'typing' | 'holding' | 'fading'
+  const [sectionRef, isVisible] = useInView(0.2);
+
+  useEffect(() => {
+    if (!isVisible) return;
+
+    let frame;
+    let timeout;
+
+    if (phase === 'typing') {
+      if (visibleChars < STUB_XML.length) {
+        frame = setTimeout(() => setVisibleChars((c) => c + 1), 14);
+      } else {
+        timeout = setTimeout(() => setPhase('holding'), 1800);
+      }
+    } else if (phase === 'holding') {
+      timeout = setTimeout(() => setPhase('fading'), 2200);
+    } else if (phase === 'fading') {
+      timeout = setTimeout(() => {
+        setVisibleChars(0);
+        setPhase('typing');
+      }, 700);
+    }
+
+    return () => {
+      clearTimeout(frame);
+      clearTimeout(timeout);
+    };
+  }, [phase, visibleChars, isVisible]);
+
+  return (
+    <section className="py-20 px-4 sm:px-6">
+      <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+        <div>
+          <span className="text-xs font-semibold tracking-widest text-violet-400 uppercase">
+            Under the hood
+          </span>
+          <h2 className="text-3xl font-bold text-white mt-2 mb-4">
+            Every order, standards-compliant
+          </h2>
+          <p className="text-gray-400 leading-relaxed mb-6">
+            Every order you create is automatically generated as a structured,
+            UBL-standard XML document -- ready to validate, archive, or hand
+            off to any system that speaks the standard. No manual formatting,
+            no inconsistent records.
+          </p>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <FaShieldAlt className="text-violet-500" />
+            Generated automatically on every order
+          </div>
+        </div>
+
+        <div ref={sectionRef} className="relative">
+          <div className="absolute -inset-6 bg-violet-600/15 blur-3xl rounded-full" aria-hidden="true" />
+          <div className="relative rounded-2xl border border-gray-800 bg-gray-900/80 shadow-2xl shadow-black/40 backdrop-blur-sm overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-800">
+              <FaCode className="text-violet-400 text-xs" />
+              <span className="text-xs font-medium text-gray-400">order.xml</span>
+            </div>
+            <pre
+              className={`px-5 py-4 text-xs leading-relaxed font-mono whitespace-pre-wrap overflow-hidden transition-opacity duration-700 ${
+                phase === 'fading' ? 'opacity-0' : 'opacity-100'
+              }`}
+              style={{ minHeight: '19rem' }}
+            >
+              <code>
+                <XmlSyntax xml={STUB_XML.slice(0, visibleChars)} />
+                <span
+                  className={`inline-block w-1.5 h-3.5 bg-violet-400 ml-0.5 align-middle ${
+                    phase === 'typing' ? 'animate-pulse' : 'opacity-0'
+                  }`}
+                  aria-hidden="true"
+                />
+              </code>
+            </pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FeatureCard({ icon, title, desc }) {
   return (
     <div className="group bg-gray-800/60 border border-gray-800 rounded-xl p-6 hover:border-violet-600/50 hover:bg-gray-800 transition-all duration-300 h-full">
@@ -227,7 +371,7 @@ function HowItWorksSection() {
   }, []);
 
   return (
-    <section className="bg-gray-900 py-20 px-4" id="how-it-works">
+    <section className="py-20 px-4" id="how-it-works">
       <div className="max-w-5xl mx-auto text-center">
         <span className="text-xs font-semibold tracking-widest text-violet-400 uppercase">
           Getting started
@@ -287,7 +431,14 @@ function HomePage() {
   };
 
   return (
-    <div className="bg-gray-900 text-gray-100 min-h-screen">
+    <div className="relative bg-gray-900 text-gray-100 min-h-screen">
+      {/* Page-wide ambient glow, fixed so it stays in place as the page scrolls */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0 bg-[radial-gradient(circle_at_20%_0%,_theme(colors.violet.600/0.16),_transparent_45%),radial-gradient(circle_at_80%_35%,_theme(colors.violet.600/0.10),_transparent_40%),radial-gradient(circle_at_30%_85%,_theme(colors.violet.600/0.08),_transparent_45%)]"
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10">
       {/* Header */}
       <header className="sticky top-0 z-30 bg-gray-950/80 backdrop-blur-sm border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
@@ -327,10 +478,6 @@ function HomePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_theme(colors.violet.600/0.15),_transparent_55%)]"
-          aria-hidden="true"
-        />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-20 sm:py-28 grid md:grid-cols-2 gap-16 items-center">
           <div className="max-w-xl">
             <span className="inline-block text-xs font-semibold tracking-widest text-violet-400 uppercase mb-4">
@@ -368,7 +515,7 @@ function HomePage() {
       <hr className="border-t border-gray-800 mx-auto w-full max-w-7xl" />
 
       {/* Features */}
-      <section id="features" className="py-20 px-4 sm:px-6 bg-gray-900">
+      <section id="features" className="py-20 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-end justify-between mb-10">
             <div>
@@ -410,12 +557,16 @@ function HomePage() {
 
       <hr className="border-t border-gray-800 mx-auto w-full max-w-7xl" />
 
+      <XmlTypewriterSection />
+
+      <hr className="border-t border-gray-800 mx-auto w-full max-w-7xl" />
+
       <HowItWorksSection />
 
       <hr className="border-t border-gray-800 mx-auto w-full max-w-7xl" />
 
       {/* Pricing Plans */}
-      <section id="pricing" className="bg-gray-900 py-20 px-4 sm:px-6">
+      <section id="pricing" className="py-20 px-4 sm:px-6">
         <div className="text-center mb-12">
           <span className="text-xs font-semibold tracking-widest text-violet-400 uppercase">
             Plans
@@ -475,7 +626,7 @@ function HomePage() {
       </section>
 
       {/* FAQ */}
-      <section className="bg-gray-950 py-20 px-4 sm:px-6 border-t border-gray-800">
+      <section className="py-20 px-4 sm:px-6 border-t border-gray-800">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-10">
             <span className="text-xs font-semibold tracking-widest text-violet-400 uppercase">
@@ -494,6 +645,7 @@ function HomePage() {
       <footer className="text-center py-8 text-sm text-gray-500 bg-gray-900 border-t border-gray-800">
         &copy; {new Date().getFullYear()} OrderNova. All rights reserved.
       </footer>
+      </div>
     </div>
   );
 }

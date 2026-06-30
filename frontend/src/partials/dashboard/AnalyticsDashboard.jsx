@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from 'recharts';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3030';
 
 const AnalyticsCard = () => {
   const [monthlyCosts, setMonthlyCosts] = useState([]);
@@ -24,8 +24,8 @@ const AnalyticsCard = () => {
             Authorization: `Bearer ${localStorage.getItem('authToken')}`,
           },
           params: {
-            startDate: '2025-jan',
-            endDate: '2025-dec',
+            startDate: '2026-jan',
+            endDate: '2026-dec',
           },
         });
 
@@ -46,18 +46,29 @@ const AnalyticsCard = () => {
   }, []);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 text-center h-full min-h-[250px] flex flex-col justify-between col-span-1 sm:col-span-1 md:col-span-1">
-      <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-2">
-        Monthly Order Costs
-      </h3>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
-        Track your order spending over time with this monthly breakdown.
-      </p>
+    <div className="relative overflow-hidden bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-6 text-center h-full min-h-[250px] flex flex-col justify-between col-span-1 sm:col-span-1 md:col-span-1">
+      {/* Ambient glow accent, matching homepage hero treatment */}
+      <div
+        className="pointer-events-none absolute -top-16 -right-16 w-48 h-48 rounded-full bg-violet-400/10 dark:bg-violet-600/15 blur-3xl"
+        aria-hidden="true"
+      />
+
+      <div className="relative">
+        <span className="text-xs font-semibold tracking-widest text-violet-500 dark:text-violet-400 uppercase">
+          Spending trend
+        </span>
+        <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-1 mb-2">
+          Monthly Order Costs
+        </h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+          Track your order spending over time with this monthly breakdown.
+        </p>
+      </div>
 
       {loading ? (
-        <div className="text-center text-gray-500 dark:text-gray-400">Loading analytics...</div>
+        <div className="relative text-center text-sm text-gray-400 dark:text-gray-500">Loading analytics…</div>
       ) : (
-        <ResponsiveContainer width="100%" height={320}>
+        <ResponsiveContainer width="100%" height={320} className="relative">
           <LineChart
             data={monthlyCosts}
             margin={{ top: 20, right: 30, left: 0, bottom: 0 }}
