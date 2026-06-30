@@ -17,13 +17,15 @@ async function getMonthlyCosts(userId, startDate, endDate) {
     for (let curr = new Date(startDate); curr <= new Date(endDate); curr = (0, date_fns_1.addMonths)(curr, 1)) {
         let sum = 0;
         for (let order of orders) {
-            (0, xml2js_1.parseString)(order.fileContents, (err, result) => {
-                if (err)
-                    return;
+            try {
+                const result = await (0, xml2js_1.parseStringPromise)(order.fileContents);
                 if ((0, date_fns_1.isSameMonth)(new Date(result.Order.timestamp[0]), curr)) {
-                    sum += result.Order.items.reduce((acc, cur) => acc + parseInt(cur.itemQuantity[0]) * parseInt(cur.itemPrice[0]), 0);
+                    sum += result.Order.items.reduce((acc, cur) => acc + parseFloat(cur.itemQuantity[0]) * parseFloat(cur.itemPrice[0]), 0);
                 }
-            });
+            }
+            catch (err) {
+                console.error("Error parsing XML in getMonthlyCosts:", err);
+            }
         }
         analytics.push({ year: (0, date_fns_1.getYear)(curr), month: (0, date_fns_1.format)(curr, "MMM"), cost: sum });
     }
@@ -34,18 +36,17 @@ async function getOrdersByDay(userId) {
     const now = new Date();
     const dailyCount = {};
     for (let order of orders) {
-        await new Promise((resolve) => {
-            (0, xml2js_1.parseString)(order.fileContents, (err, result) => {
-                if (err)
-                    return resolve();
-                const timestamp = new Date(result.Order.timestamp[0]);
-                if ((0, date_fns_1.isSameMonth)(timestamp, now)) {
-                    const dayLabel = (0, date_fns_1.format)(timestamp, "MMM dd");
-                    dailyCount[dayLabel] = (dailyCount[dayLabel] || 0) + 1;
-                }
-                resolve();
-            });
-        });
+        try {
+            const result = await (0, xml2js_1.parseStringPromise)(order.fileContents);
+            const timestamp = new Date(result.Order.timestamp[0]);
+            if ((0, date_fns_1.isSameMonth)(timestamp, now)) {
+                const dayLabel = (0, date_fns_1.format)(timestamp, "MMM dd");
+                dailyCount[dayLabel] = (dailyCount[dayLabel] || 0) + 1;
+            }
+        }
+        catch (err) {
+            console.error("Error parsing XML in getOrdersByDay:", err);
+        }
     }
     return Object.entries(dailyCount)
         .map(([day, total]) => ({ day, total }))
@@ -56,21 +57,26 @@ async function getTopProductCategories(userId) {
     const now = new Date();
     const categoryMap = {};
     for (let order of orders) {
-        (0, xml2js_1.parseString)(order.fileContents, (err, result) => {
-            if (err)
-                return;
+        try {
+            const result = await (0, xml2js_1.parseStringPromise)(order.fileContents);
             if ((0, date_fns_1.isSameMonth)(new Date(result.Order.timestamp[0]), now)) {
                 for (let item of result.Order.items) {
                     const description = item.itemDescription?.[0] || 'Unknown';
                     categoryMap[description] = (categoryMap[description] || 0) + 1;
                 }
             }
-        });
+        }
+        catch (err) {
+            console.error("Error parsing XML in getTopProductCategories:", err);
+        }
     }
-    return Object.entries(categoryMap).map(([category, count]) => ({ category, count }))
-        .sort((a, b) => b.count - a.count).slice(0, 5);
+    // Return every category found, not just the top 5 -- callers (e.g. the
+    // pie chart) can decide their own display limit, but the underlying
+    // data shouldn't be silently truncated server-side.
+    return Object.entries(categoryMap)
+        .map(([category, count]) => ({ category, count }))
+        .sort((a, b) => b.count - a.count);
 }
-const xml2js_2 = require("xml2js"); // ✅ use the promise-based one
 async function getAverageOrderValue(userId) {
     const orders = await (0, database_1.DBgetUBLDocs)(userId);
     const now = new Date();
@@ -78,15 +84,15 @@ async function getAverageOrderValue(userId) {
     let count = 0;
     for (const order of orders) {
         try {
-            const result = await (0, xml2js_2.parseStringPromise)(order.fileContents);
+            const result = await (0, xml2js_1.parseStringPromise)(order.fileContents);
             if ((0, date_fns_1.isSameMonth)(new Date(result.Order.timestamp[0]), now)) {
-                const value = result.Order.items.reduce((acc, cur) => acc + parseInt(cur.itemQuantity[0]) * parseInt(cur.itemPrice[0]), 0);
+                const value = result.Order.items.reduce((acc, cur) => acc + parseFloat(cur.itemQuantity[0]) * parseFloat(cur.itemPrice[0]), 0);
                 totalValue += value;
                 count++;
             }
         }
         catch (err) {
-            console.error("Error parsing XML:", err);
+            console.error("Error parsing XML in getAverageOrderValue:", err);
         }
     }
     return count > 0 ? totalValue / count : 0;
