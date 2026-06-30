@@ -2,13 +2,14 @@ import axios from 'axios';
 
 const rawBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3030";
 
-// const API_BASE_URL = rawBaseUrl.replace(/\/+$/, '');
-
-// console.log("[loginAuthenticate] API_BASE_URL:", API_BASE_URL);
-
 export const login = async (email, password) => {
   const url = `${rawBaseUrl}/v1/users/login`;
   console.log("[loginAuthenticate] about to POST to:", url);
+
+  console.log(
+    `[API_BASE_URL] using ${import.meta.env.VITE_API_BASE_URL ? 'env var' : 'localhost fallback'}: ${rawBaseUrl}`
+  );
+
 
   try {
     const response = await axios.post(url, { email, password });
