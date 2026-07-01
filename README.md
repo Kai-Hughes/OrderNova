@@ -23,7 +23,7 @@ The core idea: fill in buyer, seller, and item details once. The platform handle
 | Feature | Description |
 |---|---|
 | **Order Creation** | Generate UBL 2.1-compliant XML orders from a structured form |
-| **Invoice Generation** | Convert orders to invoices in one step |
+| **Invoice Generation** | Invoice functionality exists in the codebase but is currently non-operational — it was originally integrated with a partner team's external API as part of the cohort project, which has since been decommissioned. |
 | **Real-Time Analytics** | Monthly cost trends, daily order volume, average order value, top product categories |
 | **Bulk CSV Import** | Upload orders in bulk via CSV or XLSX with client-side validation before any request is made |
 | **Email Notifications** | Automated confirmation emails to buyer and seller on order creation |
