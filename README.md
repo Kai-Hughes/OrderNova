@@ -6,7 +6,7 @@
 
 ---
 
-![OrderNova Homepage](./docs/homepage.png)
+![OrderNova Homepage](./docs/homepage.jpeg)
 
 ---
 
